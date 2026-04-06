@@ -1,0 +1,54 @@
+@media print {
+  /* Hide navigation and buttons */
+  .sidebar,
+  button,
+  .nav-item,
+  .logout-btn,
+  .wa-btn,
+  .btn-export,
+  .search-box,
+  .filter-chips {
+    display: none !important;
+  }
+
+  /* Optimize layout for print */
+  body {
+    background: white !important;
+  }
+
+  .main-content,
+  .page {
+    padding: 20px !important;
+  }
+
+  /* Make tables print-friendly */
+  .requests-table,
+  .admin-table {
+    border: 1px solid #ccc !important;
+    page-break-inside: avoid;
+  }
+
+  .table-row,
+  .admin-table-row {
+    border-bottom: 1px solid #ddd !important;
+    page-break-inside: avoid;
+  }
+
+  /* Expand truncated text */
+  .truncate {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+  }
+
+  /* Better page breaks */
+  .stat-grid,
+  .chart-row,
+  .detail-grid {
+    page-break-inside: avoid;
+  }
+
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+}

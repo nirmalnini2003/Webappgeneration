@@ -1,0 +1,3057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BNRI Infra — Request & Approval System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#F0F6FF;--bg2:#FFFFFF;--bg3:#E6F0FB;--bg4:#D6E8F8;
+  --border:#C2D9F0;--border2:#A8C8E8;
+  --text:#1A2E4A;--text2:#4A6A8A;--text3:#8AAAC8;
+  --blue:#2563EB;--blue2:#1D4ED8;--blue-dim:#DBEAFE;
+  --green:#16A34A;--green-dim:#DCFCE7;
+  --red:#DC2626;--red-dim:#FEE2E2;
+  --amber:#D97706;--amber-dim:#FEF3C7;
+  --purple:#7C3AED;--purple-dim:#EDE9FE;
+  --teal:#0D9488;--teal-dim:#CCFBF1;
+  --font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+/* ── LOGIN ── */
+#login-screen{align-items:center;justify-content:center;background:var(--bg);position:relative;overflow:hidden;}
+#login-screen::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,#BFDBFE40 0%,transparent 70%);top:-200px;right:-200px;}
+#login-screen::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,#DBEAFE30 0%,transparent 70%);bottom:-100px;left:-100px;}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:400px;position:relative;z-index:1;}
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-logo span{font-size:11px;letter-spacing:4px;color:var(--text3);display:block;margin-bottom:8px;text-transform:uppercase;}
+.login-logo h1{font-size:36px;font-weight:700;letter-spacing:-1px;}
+.login-logo h1 em{color:var(--blue);font-style:normal;}
+.login-roles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px;}
+.role-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px;cursor:pointer;transition:.2s;text-align:left;}
+.role-btn:hover,.role-btn.selected{border-color:var(--blue);background:var(--blue-dim);}
+.role-btn .role-name{font-size:12px;font-weight:600;color:var(--text);}
+.role-btn .role-label{font-size:10px;color:var(--text2);margin-top:2px;}
+.form-group{margin-bottom:14px;}
+.form-group label{font-size:11px;color:var(--text2);font-weight:600;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:6px;}
+.form-group input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:.2s;}
+.form-group input:focus{border-color:var(--blue);}
+.btn-primary{width:100%;background:var(--blue);border:none;border-radius:10px;padding:13px;color:#fff;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:.2s;letter-spacing:.3px;}
+.btn-primary:hover{background:var(--blue2);}
+/* ── APP SHELL ── */
+#app-shell{flex-direction:row;min-height:100vh;}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border);}
+.sidebar-logo h2{font-size:18px;font-weight:700;letter-spacing:-0.5px;}
+.sidebar-logo h2 em{color:var(--blue);font-style:normal;}
+.sidebar-logo span{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
+.sidebar-user{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue-dim);border:1px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--blue);flex-shrink:0;}
+.user-info .name{font-size:13px;font-weight:600;color:var(--text);}
+.user-info .role{font-size:10px;color:var(--text2);}
+.sidebar-nav{padding:12px 0;flex:1;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;transition:.15s;border-left:3px solid transparent;font-size:13px;font-weight:500;color:var(--text2);}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:var(--blue-dim);color:var(--blue);border-left-color:var(--blue);}
+.nav-item .nav-icon{font-size:16px;width:20px;text-align:center;}
+.nav-badge{margin-left:auto;background:var(--blue);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;}
+.sidebar-logout{padding:16px 20px;border-top:1px solid var(--border);}
+.logout-btn{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);cursor:pointer;padding:8px;border-radius:8px;transition:.15s;}
+.logout-btn:hover{color:var(--red);background:var(--red-dim)20;}
+
+.main-content{flex:1;overflow-y:auto;background:var(--bg);}
+
+/* ── PAGES ── */
+.page{display:none;padding:28px;}
+.page.active{display:block;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.page-title{font-size:22px;font-weight:700;letter-spacing:-0.5px;}
+.page-subtitle{font-size:13px;color:var(--text2);margin-top:2px;}
+
+/* ── STAT CARDS ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px;border-left:3px solid;}
+.stat-card .val{font-size:32px;font-weight:700;letter-spacing:-1px;}
+.stat-card .lbl{font-size:11px;color:var(--text2);margin-top:4px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+
+/* ── CHART ── */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.chart-title{font-size:12px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:16px;}
+.bar-group{display:flex;flex-direction:column;gap:10px;}
+.bar-item{display:flex;align-items:center;gap:10px;}
+.bar-label{font-size:12px;color:var(--text2);width:90px;flex-shrink:0;}
+.bar-track{flex:1;background:var(--bg3);border-radius:4px;height:8px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:.8s ease;}
+.bar-count{font-size:12px;color:var(--text);font-family:var(--mono);width:24px;text-align:right;}
+.status-list{display:flex;flex-direction:column;gap:8px;}
+.status-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
+.status-item:last-child{border-bottom:none;}
+.status-dot{width:8px;height:8px;border-radius:50%;margin-right:8px;flex-shrink:0;}
+.status-name{font-size:13px;color:var(--text2);flex:1;display:flex;align-items:center;}
+.status-count{font-size:13px;font-weight:700;font-family:var(--mono);}
+
+/* ── REQUESTS LIST ── */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.search-box{flex:1;min-width:200px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:9px 14px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;}
+.search-box:focus{border-color:var(--blue);}
+.filter-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;transition:.15s;}
+.chip:hover,.chip.active{border-color:var(--blue);background:var(--blue-dim);color:var(--blue);}
+.btn-export{background:var(--green-dim);border:1px solid var(--green);color:var(--green);border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;font-family:var(--font);}
+.btn-export:hover{background:var(--green);color:#fff;}
+.requests-table{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.table-head{display:grid;grid-template-columns:100px 1fr 100px 90px 110px 80px;gap:0;background:var(--bg3);padding:10px 16px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;}
+.table-row{display:grid;grid-template-columns:100px 1fr 100px 90px 110px 80px;gap:0;padding:14px 16px;border-top:1px solid var(--border);cursor:pointer;transition:.15s;align-items:center;}
+.table-row:hover{background:var(--bg3);}
+.ref-no{font-family:var(--mono);font-size:11px;color:var(--blue);font-weight:600;}
+.req-title-cell .title{font-size:13px;font-weight:600;color:var(--text);}
+.req-title-cell .comment{font-size:11px;color:var(--text3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px;}
+.type-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;}
+.priority-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;}
+.status-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;white-space:nowrap;}
+.action-btns{display:flex;gap:4px;}
+.tbl-btn{border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);transition:.15s;}
+
+/* ── REQUEST DETAIL ── */
+.detail-back{display:flex;align-items:center;gap:8px;color:var(--blue);font-size:13px;cursor:pointer;margin-bottom:20px;font-weight:600;}
+.detail-header{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px;}
+.detail-ref{font-family:var(--mono);font-size:12px;color:var(--blue);margin-bottom:8px;}
+.detail-title{font-size:20px;font-weight:700;margin-bottom:12px;}
+.detail-meta{display:flex;gap:16px;flex-wrap:wrap;}
+.meta-chip{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px;}
+.detail-grid{display:grid;grid-template-columns:1fr 320px;gap:16px;}
+.detail-main{display:flex;flex-direction:column;gap:16px;}
+.detail-side{display:flex;flex-direction:column;gap:16px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.card-title{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px;}
+.timeline{display:flex;flex-direction:column;gap:0;}
+.tl-stage-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);padding:10px 0 6px;display:flex;align-items:center;gap:8px;}
+.tl-stage-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.tl-item{display:flex;gap:12px;padding-bottom:0;position:relative;margin-bottom:0;}
+.tl-item-inner{display:flex;gap:12px;padding:16px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg3);flex:1;margin-bottom:14px;position:relative;}
+.tl-item-inner.approved{border-color:#22C55E44;}
+.tl-item-inner.rejected{border-color:#EF444444;}
+.tl-item-inner.clarification{border-color:#A78BFA44;}
+.tl-item-inner.pending{border-color:var(--border);opacity:.6;}
+.tl-connector{width:2px;background:var(--border);margin:0 auto;height:10px;}
+.tl-dot{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;border:2px solid;}
+.tl-body{flex:1;}
+.tl-action{font-size:14px;font-weight:700;}
+.tl-who{font-size:12px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:6px;}
+.tl-time{font-size:10px;color:var(--text3);background:var(--bg4);padding:2px 6px;border-radius:4px;font-family:var(--mono);}
+.tl-comment{font-size:12px;color:var(--text2);background:var(--bg);border-radius:8px;padding:8px 10px;margin-top:8px;font-style:italic;border-left:3px solid var(--border2);}
+.tl-stage-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;margin-left:auto;flex-shrink:0;}
+.workflow-status{display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.wf-step{flex:1;padding:10px 8px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.3px;background:var(--bg3);color:var(--text3);border-right:1px solid var(--border);transition:.3s;}
+.wf-step:last-child{border-right:none;}
+.wf-step.done{background:var(--green-dim);color:var(--green);}
+.wf-step.active{background:var(--blue-dim);color:var(--blue);}
+.wf-step.rejected-step{background:var(--red-dim);color:var(--red);}
+.wf-step.clarify-step{background:var(--purple-dim);color:var(--purple);}
+.wf-step .wf-icon{font-size:14px;display:block;margin-bottom:2px;}
+.comment-thread{display:flex;flex-direction:column;gap:12px;}
+.comment-item{display:flex;gap:10px;}
+.c-avatar{width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.c-body{flex:1;background:var(--bg3);border-radius:10px;padding:10px 12px;}
+.c-header{display:flex;gap:8px;align-items:center;margin-bottom:4px;}
+.c-name{font-size:12px;font-weight:700;color:var(--blue);}
+.c-time{font-size:10px;color:var(--text3);}
+.c-text{font-size:13px;color:var(--text);line-height:1.5;}
+.comment-input{display:flex;gap:8px;margin-top:12px;}
+.comment-input input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;}
+.comment-input input:focus{border-color:var(--blue);}
+.comment-send{background:var(--blue);border:none;border-radius:10px;padding:10px 16px;color:#fff;cursor:pointer;font-weight:700;font-size:13px;font-family:var(--font);}
+.approver-actions{display:flex;flex-direction:column;gap:8px;}
+.action-btn-full{border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:.2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.wa-btn{background:#1a3323;border:1px solid #25D366;color:#25D366;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px;justify-content:center;transition:.15s;}
+.wa-btn:hover{background:#25D366;color:#fff;}
+.doc-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.doc-item:last-child{border-bottom:none;}
+.doc-icon{font-size:18px;}
+.doc-name{font-size:13px;flex:1;}
+.doc-ver{font-size:10px;font-family:var(--mono);color:var(--blue);background:var(--blue-dim);padding:2px 6px;border-radius:4px;}
+
+/* ── NEW REQUEST FORM ── */
+.form-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:28px;max-width:700px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-field{margin-bottom:18px;}
+.form-field label{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:7px;}
+.form-field input,.form-field textarea,.form-field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:.2s;}
+.form-field input:focus,.form-field textarea:focus,.form-field select:focus{border-color:var(--blue);}
+.form-field textarea{height:100px;resize:vertical;}
+.form-field select option{background:var(--bg2);}
+.chip-group{display:flex;gap:8px;flex-wrap:wrap;}
+.chip-select{padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:.15s;}
+.chip-select:hover,.chip-select.sel{border-color:var(--blue);background:var(--blue-dim);color:var(--blue);}
+.submit-btn{background:var(--blue);border:none;border-radius:12px;padding:14px 32px;color:#fff;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:.2s;}
+.submit-btn:hover{background:var(--blue2);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:#FFFFFF;border:1px solid var(--green);box-shadow:0 4px 20px rgba(0,0,0,0.1);border-radius:12px;padding:14px 18px;font-size:13px;color:var(--green);font-weight:600;z-index:9999;transform:translateY(80px);opacity:0;transition:.3s;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:#00000088;z-index:999;display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:28px;width:100%;max-width:480px;}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:16px;}
+.modal textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;height:90px;resize:none;margin-bottom:16px;}
+.modal-btns{display:flex;gap:10px;}
+.modal-cancel{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text2);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;}
+.modal-confirm{flex:1;border:none;border-radius:10px;padding:12px;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;}
+
+@media(max-width:768px){
+  #app-shell{flex-direction:column;}
+  .sidebar{width:100%;flex-direction:row;height:auto;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .chart-row,.detail-grid,.form-row{grid-template-columns:1fr;}
+  .table-head,.table-row{grid-template-columns:90px 1fr 90px 80px;}
+  .table-head>*:nth-child(3),.table-row>*:nth-child(3),.table-head>*:nth-child(6),.table-row>*:nth-child(6){display:none;}
+}
+
+/* ── ADMIN ── */
+#admin-shell{display:none;min-height:100vh;flex-direction:row;}
+#admin-shell.active{display:flex;}
+.admin-sidebar{width:230px;background:#FFFBEB;border-right:1px solid #FDE68A;display:flex;flex-direction:column;flex-shrink:0;}
+.admin-sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid #FDE68A;}
+.admin-sidebar-logo h2{font-size:16px;font-weight:800;color:#D97706;letter-spacing:1px;text-transform:uppercase;}
+.admin-sidebar-logo span{font-size:10px;color:#B45309;letter-spacing:2px;text-transform:uppercase;}
+.admin-sidebar-user{padding:14px 20px;border-bottom:1px solid #FDE68A;display:flex;align-items:center;gap:10px;}
+.admin-user-avatar{width:34px;height:34px;border-radius:50%;background:#FEF3C7;border:1px solid #F59E0B;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#EF4444;}
+.admin-nav{padding:10px 0;flex:1;}
+.admin-nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;transition:.15s;border-left:3px solid transparent;font-size:13px;font-weight:600;color:#92400E;}
+.admin-nav-item:hover{background:#FEF3C7;color:#D97706;}
+.admin-nav-item.active{background:#FDE68A;color:#92400E;border-left-color:#D97706;}
+.admin-main{flex:1;background:#F0F6FF;overflow-y:auto;}
+.admin-page{display:none;padding:28px;}
+.admin-page.active{display:block;}
+.admin-page-title{font-size:22px;font-weight:800;color:#1A2E4A;margin-bottom:4px;}
+.admin-page-sub{font-size:13px;color:#4A6A8A;margin-bottom:24px;}
+
+/* stat cards */
+.admin-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.admin-stat{background:#FFFFFF;border:1px solid #C2D9F0;border-radius:14px;padding:18px;border-top:3px solid;}
+.admin-stat .val{font-size:30px;font-weight:800;}
+.admin-stat .lbl{font-size:11px;color:#4A6A8A;margin-top:4px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+
+/* TAT */
+.tat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px;}
+.tat-card{background:#FFFFFF;border:1px solid #C2D9F0;border-radius:14px;padding:20px;}
+.tat-title{font-size:11px;font-weight:700;color:#7A90B8;letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px;}
+.tat-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.tat-label{font-size:12px;color:#7A90B8;width:110px;flex-shrink:0;}
+.tat-bar-track{flex:1;background:#E6F0FB;border-radius:4px;height:10px;overflow:hidden;}
+.tat-bar-fill{height:100%;border-radius:4px;}
+.tat-val{font-size:12px;font-family:'JetBrains Mono',monospace;color:#1A2E4A;width:40px;text-align:right;}
+.tat-kpi-row{display:flex;gap:10px;margin-top:4px;}
+.tat-kpi{flex:1;background:#E6F0FB;border-radius:10px;padding:12px;text-align:center;}
+.tat-kpi .kval{font-size:22px;font-weight:800;}
+.tat-kpi .klbl{font-size:10px;color:#7A90B8;margin-top:2px;}
+
+/* users table */
+.admin-table{background:#FFFFFF;border:1px solid #C2D9F0;border-radius:14px;overflow:hidden;margin-bottom:22px;}
+.admin-table-head{display:grid;grid-template-columns:36px 1fr 1fr 140px 80px 130px;gap:0;background:#E6F0FB;padding:10px 16px;font-size:10px;font-weight:700;color:#8AAAC8;letter-spacing:.5px;text-transform:uppercase;}
+.admin-table-row{display:grid;grid-template-columns:36px 1fr 1fr 140px 80px 130px;gap:0;padding:12px 16px;border-top:1px solid #C2D9F0;align-items:center;transition:.15s;}
+.admin-table-row:hover{background:#D6E8F8;}
+.role-pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;}
+.del-btn{background:#FEE2E2;border:1px solid #DC2626;color:#DC2626;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:.15s;}
+.del-btn:hover{background:#EF4444;color:#fff;}
+.add-user-btn{background:#2563EB;border:none;border-radius:10px;padding:9px 16px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* requests overview */
+.admin-req-grid{display:grid;grid-template-columns:50px 1fr 100px 90px 120px 100px 80px;gap:0;}
+.admin-req-head{background:#E6F0FB;padding:10px 16px;font-size:10px;font-weight:700;color:#8AAAC8;letter-spacing:.5px;text-transform:uppercase;}
+.admin-req-row{padding:12px 16px;border-top:1px solid #C2D9F0;align-items:center;transition:.15s;cursor:pointer;}
+.admin-req-row:hover{background:#D6E8F8;}
+
+/* dept chart */
+.dept-bars{display:flex;flex-direction:column;gap:12px;}
+.dept-row{display:flex;align-items:center;gap:12px;}
+.dept-label{font-size:12px;color:#7A90B8;width:100px;flex-shrink:0;}
+.dept-bar-track{flex:1;background:#E6F0FB;border-radius:6px;height:14px;overflow:hidden;}
+.dept-bar-fill{height:100%;border-radius:6px;transition:.8s ease;}
+.dept-count{font-size:12px;font-family:'JetBrains Mono',monospace;color:#C8D8F0;width:24px;text-align:right;}
+
+/* add user modal */
+.add-modal{background:#FFFFFF;border:1px solid #C2D9F0;border-radius:16px;padding:28px;width:100%;max-width:440px;}
+.add-modal h3{font-size:18px;font-weight:800;color:#2563EB;margin-bottom:20px;}
+.add-modal input,.add-modal select{width:100%;background:#F0F6FF;border:1px solid #C2D9F0;border-radius:10px;padding:11px 14px;color:#1A2E4A;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;margin-bottom:12px;}
+.add-modal input:focus,.add-modal select:focus{border-color:#2563EB;}
+.add-modal select option{background:#FFFFFF;}
+.add-modal-btns{display:flex;gap:10px;margin-top:6px;}
+.add-cancel{flex:1;background:#E6F0FB;border:1px solid #C2D9F0;border-radius:10px;padding:11px;color:#4A6A8A;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.add-confirm{flex:1;background:#2563EB;border:none;border-radius:10px;padding:11px;color:#fff;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">
+      <span>Request & Approval System</span>
+      <h1>BNRI<em>INFRA</em></h1>
+    </div>
+    <div style="display:flex;justify-content:center;margin-bottom:18px;">
+      <button class="wa-btn" onclick="openWhatsAppChat()" style="width:100%;max-width:240px;">💬 Owner WhatsApp</button>
+    </div>
+    <!-- STEP 1: Choose type -->
+    <div id="login-step1">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px;font-weight:500;text-align:center;">How would you like to continue?</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="window._BNRISelectType('requester')" style="background:#EFF6FF;border:2px solid #BFDBFE;border-radius:12px;padding:16px;cursor:pointer;text-align:left;font-family:var(--font);width:100%;">
+          <div style="font-size:22px;margin-bottom:4px;">&#x1F4DD;</div>
+          <div style="font-size:14px;font-weight:700;color:#1A2E4A;">I'm a Requester</div>
+          <div style="font-size:11px;color:#4A6A8A;margin-top:2px;">Submit and track approval requests</div>
+        </button>
+        <button onclick="window._BNRISelectType('staff')" style="background:#F0FDF4;border:2px solid #BBF7D0;border-radius:12px;padding:16px;cursor:pointer;text-align:left;font-family:var(--font);width:100%;">
+          <div style="font-size:22px;margin-bottom:4px;">&#x2705;</div>
+          <div style="font-size:14px;font-weight:700;color:#1A2E4A;">I'm an Approver / Admin</div>
+          <div style="font-size:11px;color:#4A6A8A;margin-top:2px;">Review and approve requests</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2a: Requester -->
+    <div id="login-step2-requester" style="display:none;">
+      <button onclick="window._BNRIBackStep()" style="background:none;border:none;color:#2563EB;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:14px;padding:0;font-family:var(--font);">&#x2190; Back</button>
+      <div style="display:flex;gap:8px;margin-bottom:18px;">
+        <button id="tab-signin" onclick="window._BNRIReqTab('signin')" style="flex:1;padding:9px;border-radius:8px;border:none;background:#2563EB;color:#fff;font-weight:700;cursor:pointer;font-size:13px;font-family:var(--font);">Sign In</button>
+        <button id="tab-register" onclick="window._BNRIReqTab('register')" style="flex:1;padding:9px;border-radius:8px;border:1px solid #C2D9F0;background:#F0F6FF;color:#4A6A8A;font-weight:700;cursor:pointer;font-size:13px;font-family:var(--font);">Register</button>
+      </div>
+      <div id="req-signin-form">
+        <div class="form-group"><label>Mobile Number</label><input id="req-login-user" type="tel" placeholder="Enter your mobile number"/></div>
+        <div class="form-group"><label>Password</label><input id="req-login-pass" type="password" placeholder="Your password" onkeydown="if(event.key==='Enter')window._BNRILogin()"/></div>
+        <div id="req-login-error" style="display:none;background:#FEE2E2;border:1px solid #DC2626;border-radius:8px;padding:10px 14px;font-size:12px;color:#DC2626;font-weight:600;margin-bottom:12px;">Invalid mobile number or password.</div>
+        <button onclick="window._BNRILogin()" style="width:100%;background:#2563EB;border:none;border-radius:10px;padding:13px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);">Sign In</button>
+      </div>
+      <div id="req-register-form" style="display:none;">
+        <div class="form-group"><label>Full Name</label><input id="reg-name" type="text" placeholder="e.g. Nivetha R."/></div>
+        <div class="form-group"><label>Mobile Number (used as Login ID)</label><input id="reg-user" type="tel" placeholder="Enter 10-digit mobile number"/></div>
+        <div class="form-group"><label>Department</label>
+          <select id="reg-dept" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;">
+            <option>Operations</option><option>Finance</option><option>IT</option>
+            <option>Legal</option><option>HR</option><option>Marketing</option><option>General</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Password</label><input id="reg-pass" type="password" placeholder="Min 6 characters"/></div>
+        <div class="form-group"><label>Confirm Password</label><input id="reg-pass2" type="password" placeholder="Re-enter password" onkeydown="if(event.key==='Enter')window._BNRIRegister()"/></div>
+        <div id="reg-error" style="display:none;background:#FEE2E2;border:1px solid #DC2626;border-radius:8px;padding:10px 14px;font-size:12px;color:#DC2626;font-weight:600;margin-bottom:12px;"></div>
+        <button onclick="window._BNRIRegister()" style="width:100%;background:#2563EB;border:none;border-radius:10px;padding:13px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);">Create Account</button>
+      </div>
+    </div>
+
+    <!-- STEP 2b: Staff/Admin login -->
+    <div id="login-step2-staff" style="display:none;">
+      <button onclick="window._BNRIBackStep()" style="background:none;border:none;color:#2563EB;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:14px;padding:0;font-family:var(--font);">&#x2190; Back</button>
+      <div class="form-group"><label>Mobile Number</label><input id="login-user" type="tel" placeholder="Enter your mobile number"/></div>
+      <div class="form-group"><label>Password</label><input id="login-pass" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')window._BNRILogin()"/></div>
+      <div id="login-error" style="display:none;background:#FEE2E2;border:1px solid #DC2626;border-radius:8px;padding:10px 14px;font-size:12px;color:#DC2626;font-weight:600;margin-bottom:12px;">Invalid mobile number or password.</div>
+      <button onclick="window._BNRILogin()" style="width:100%;background:#16A34A;border:none;border-radius:10px;padding:13px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);">Sign In</button>
+      <div style="margin-top:12px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 14px;">
+        <p style="font-size:11px;color:#2563EB;font-weight:700;margin-bottom:3px;">Default Credentials</p>
+        <p style="font-size:11px;color:#4A6A8A;line-height:1.7;">admin / admin123 &nbsp;|&nbsp; bob, ravi, carol, priya, david / pass123<br/>New users: mobile number / password</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app-shell" class="screen">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <h2>BNRI<em>INFRA</em></h2>
+      <span>Approval System</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="sb-avatar">A</div>
+      <div class="user-info">
+        <div class="name" id="sb-name">Alice R.</div>
+        <div class="role" id="sb-role">Requester</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">⬛</span> Dashboard</div>
+      <div class="nav-item" onclick="showPage('requests',this);setViewMode('all')"><span class="nav-icon">📄</span> All Requests <span class="nav-badge" id="pending-badge">3</span></div>
+      <div class="nav-item" id="my-req-nav" onclick="showPage('requests',this);setViewMode('mine')"><span class="nav-icon">👤</span> My Tasks</div>
+      <div class="nav-item" id="new-req-nav" onclick="showPage('new-request',this)"><span class="nav-icon">➕</span> New Request</div>
+    </nav>
+    <div class="sidebar-logout">
+      <div class="logout-btn" onclick="doLogout()">⬅ Logout</div>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <!-- DASHBOARD PAGE -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-subtitle" id="dash-subtitle">Welcome back</div>
+        </div>
+        <button class="wa-btn" onclick="openWhatsAppChat()">💬 WhatsApp Chat</button>
+      </div>
+      <div class="stat-grid" id="dash-stat-grid"></div>
+      <div class="chart-row" id="dash-chart-row"></div>
+    </div>
+
+    <!-- REQUESTS LIST PAGE -->
+    <div id="page-requests" class="page">
+      <div class="page-header">
+        <div><div class="page-title" id="req-page-title">All Requests</div><div class="page-subtitle" id="req-page-sub">12 total requests</div></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-export" onclick="exportExcel()" style="background:#E8F5E9;border:1px solid #4CAF50;color:#2E7D32;">📊 Export Excel</button>
+          <button class="btn-export" onclick="exportPDF()" style="background:#FDE8E8;border:1px solid #EF4444;color:#C62828;">📄 Export PDF</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div style="display:flex;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;">
+          <button id="tab-all" onclick="setViewMode('all');highlightTab('all')" style="border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);background:var(--blue);color:#fff;transition:.15s;">All Requests</button>
+          <button id="tab-mine" onclick="setViewMode('mine');highlightTab('mine')" style="border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);background:transparent;color:var(--text2);transition:.15s;">My Tasks</button>
+        </div>
+        <input class="search-box" placeholder="🔍 Search requests..." oninput="filterRequests(this.value)" style="flex:1;min-width:160px;"/>
+        <div class="filter-chips">
+          <div class="chip active" onclick="setFilter('All',this)">All</div>
+          <div class="chip" onclick="setFilter('Pending Review',this)">Pending</div>
+          <div class="chip" onclick="setFilter('Approved',this)">Approved</div>
+          <div class="chip" onclick="setFilter('Rejected',this)">Rejected</div>
+        </div>
+      </div>
+      <div class="requests-table">
+        <div class="table-head">
+          <div>Ref No</div><div>Title</div><div>Type</div><div>Priority</div><div>Status</div><div>Action</div>
+        </div>
+        <div id="requests-body"></div>
+      </div>
+    </div>
+
+    <!-- REQUEST DETAIL PAGE -->
+    <div id="page-detail" class="page">
+      <div class="detail-back" onclick="showPage('requests',document.querySelectorAll('.nav-item')[1])">← Back to Requests</div>
+      <div id="detail-content"></div>
+    </div>
+
+    <!-- NEW REQUEST PAGE -->
+    <div id="page-new-request" class="page">
+      <div class="page-header">
+        <div><div class="page-title">New Request</div><div class="page-subtitle">Submit a new request for approval</div></div>
+      </div>
+      <div class="form-card">
+        <div class="form-field">
+          <label>Title *</label>
+          <input id="req-title" type="text" placeholder="Request title..."/>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Request Type *</label>
+            <div class="chip-group" id="type-chips">
+              <div class="chip-select sel" onclick="selectChip(this,'type')">Finance</div>
+              <div class="chip-select" onclick="selectChip(this,'type')">IT</div>
+              <div class="chip-select" onclick="selectChip(this,'type')">Procurement</div>
+              <div class="chip-select" onclick="selectChip(this,'type')">Legal</div>
+              <div class="chip-select" onclick="selectChip(this,'type')">HR</div>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Priority</label>
+            <div class="chip-group" id="priority-chips">
+              <div class="chip-select" onclick="selectChip(this,'priority')">Low</div>
+              <div class="chip-select sel" onclick="selectChip(this,'priority')">Medium</div>
+              <div class="chip-select" onclick="selectChip(this,'priority')">High</div>
+              <div class="chip-select" onclick="selectChip(this,'priority')">Critical</div>
+            </div>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Description</label>
+          <textarea id="req-desc" placeholder="Describe your request in detail..."></textarea>
+        </div>
+        <div class="form-field">
+          <label>Attachments</label>
+          <label for="file-upload" style="display:flex;align-items:center;gap:12px;background:#F0F6FF;border:2px dashed #C2D9F0;border-radius:10px;padding:16px;cursor:pointer;transition:.2s;width:100%;box-sizing:border-box;">
+            <span style="font-size:24px;">📎</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#2563EB;">Click to choose files</div>
+              <div style="font-size:11px;color:#8AAAC8;margin-top:2px;" id="file-label">No file chosen</div>
+            </div>
+            <input id="file-upload" type="file" multiple style="display:none;" onchange="var n=this.files.length;document.getElementById('file-label').textContent=n?n+' file'+(n>1?'s':'')+' selected':'No file chosen'"/>
+          </label>
+        </div>
+        <button class="submit-btn" onclick="submitRequest()">Submit Request →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="action-modal">
+  <div class="modal">
+    <h3 id="modal-title">Approve Request</h3>
+    <textarea id="modal-comment" placeholder="Add your comment (optional)..."></textarea>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-confirm" id="modal-confirm-btn" onclick="confirmAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ATTACHMENT PREVIEW MODAL -->
+<div class="modal-overlay" id="attachment-modal" onclick="if(event.target===this)closeAttachment()">
+  <div class="modal" style="border-radius:16px;padding:0;overflow:hidden;max-width:420px;">
+    <div style="background:#1A3A5C;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:14px;font-weight:700;color:#fff;">📎 File Preview</span>
+      <button onclick="closeAttachment()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:12px;">✕ Close</button>
+    </div>
+    <div style="padding:20px;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+        <div id="att-icon" style="font-size:36px;"></div>
+        <div>
+          <div id="att-name" style="font-size:15px;font-weight:700;color:var(--text);"></div>
+          <div id="att-type" style="font-size:11px;color:var(--text2);margin-top:2px;"></div>
+        </div>
+      </div>
+      <div style="background:#F0F6FF;border-radius:10px;padding:14px;margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="font-size:11px;color:var(--text2);">Uploaded by<br><strong id="att-uploader" style="font-size:13px;color:var(--text);"></strong></div>
+          <div style="font-size:11px;color:var(--text2);">Upload date<br><strong id="att-date" style="font-size:13px;color:var(--text);"></strong></div>
+          <div style="font-size:11px;color:var(--text2);">Version<br><strong id="att-ver" style="font-size:13px;color:#2563EB;"></strong></div>
+          <div style="font-size:11px;color:var(--text2);">Reference<br><strong id="att-ref" style="font-size:13px;color:var(--text);font-family:monospace;"></strong></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="closeAttachment()" style="flex:1;background:#F0F6FF;border:1px solid #C2D9F0;border-radius:10px;padding:10px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);">Cancel</button>
+        <button onclick="viewAttachment()" style="flex:1;background:#EDE9FE;border:none;border-radius:10px;padding:10px;color:#6D28D9;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);">👁️ View</button>
+        <button onclick="downloadAttachment()" style="flex:1;background:#2563EB;border:none;border-radius:10px;padding:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);">📥 Download</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ADMIN SHELL -->
+<div id="admin-shell">
+  <div class="admin-sidebar">
+    <div class="admin-sidebar-logo">
+      <h2>&#x1F6E1; BNRI Admin</h2>
+      <span>Super User Console</span>
+    </div>
+    <div class="admin-sidebar-user">
+      <div class="admin-user-avatar">A</div>
+      <div class="user-info">
+        <div class="name" style="color:#EF4444;font-size:13px;font-weight:700;">Admin</div>
+        <div class="role" style="font-size:10px;color:#5a2020;">Super User</div>
+      </div>
+    </div>
+    <nav class="admin-nav">
+      <div class="admin-nav-item active" onclick="adminPage('overview',this)"><span style="font-size:16px">&#x26A1;</span> Overview</div>
+      <div class="admin-nav-item" onclick="adminPage('requests',this)"><span style="font-size:16px">&#x1F4CB;</span> All Requests</div>
+      <div class="admin-nav-item" onclick="adminPage('users',this)"><span style="font-size:16px">&#x1F465;</span> User Management</div>
+      <div class="admin-nav-item" onclick="adminPage('tat',this)"><span style="font-size:16px">&#x23F1;</span> TAT Metrics</div>
+      <div class="admin-nav-item" onclick="adminPage('reports',this)"><span style="font-size:16px">&#x1F4CA;</span> Reports</div>
+    </nav>
+    <div class="sidebar-logout">
+      <div class="logout-btn" onclick="adminLogout()">&#x2190; Logout</div>
+    </div>
+  </div>
+
+  <div class="admin-main">
+
+    <!-- OVERVIEW -->
+    <div id="admin-page-overview" class="admin-page active">
+      <div class="admin-page-title">Admin Overview</div>
+      <div class="admin-page-sub">Full system snapshot — all departments, all requests</div>
+      <div class="admin-stat-grid">
+        <div class="admin-stat" style="border-top-color:#3B82F6"><div class="val" style="color:#3B82F6" id="adm-total">12</div><div class="lbl">Total Requests</div></div>
+        <div class="admin-stat" style="border-top-color:#F59E0B"><div class="val" style="color:#F59E0B" id="adm-pending">5</div><div class="lbl">Pending</div></div>
+        <div class="admin-stat" style="border-top-color:#22C55E"><div class="val" style="color:#22C55E" id="adm-approved">6</div><div class="lbl">Approved</div></div>
+        <div class="admin-stat" style="border-top-color:#EF4444"><div class="val" style="color:#EF4444" id="adm-rejected">1</div><div class="lbl">Rejected</div></div>
+      </div>
+      <div class="admin-stat-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="admin-stat" style="border-top-color:#A78BFA"><div class="val" style="color:#A78BFA" id="adm-users">5</div><div class="lbl">Active Users</div></div>
+        <div class="admin-stat" style="border-top-color:#2DD4BF"><div class="val" style="color:#2DD4BF" id="adm-avg-tat">2.4d</div><div class="lbl">Avg TAT</div></div>
+        <div class="admin-stat" style="border-top-color:#F59E0B"><div class="val" style="color:#F59E0B" id="adm-overdue">2</div><div class="lbl">Overdue (&gt;5 days)</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="tat-card">
+          <div class="tat-title">Requests by Department</div>
+          <div class="dept-bars" id="dept-bars"></div>
+        </div>
+        <div class="tat-card">
+          <div class="tat-title">Status Breakdown</div>
+          <div id="overview-status-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALL REQUESTS -->
+    <div id="admin-page-requests" class="admin-page">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+        <div><div class="admin-page-title">All Requests</div><div class="admin-page-sub">Full view — every request across all users</div></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-export" onclick="exportExcel()" style="background:#E8F5E9;border:1px solid #4CAF50;color:#2E7D32;">📊 Export Excel</button>
+          <button class="btn-export" onclick="exportPDF()" style="background:#FDE8E8;border:1px solid #EF4444;color:#C62828;">📄 Export PDF</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <input class="search-box" id="admin-req-search" placeholder="&#x1F50D; Search..." oninput="renderAdminRequests()" style="flex:1;min-width:180px"/>
+        <div class="filter-chips" id="admin-req-filters">
+          <div class="chip active" onclick="adminReqFilter('All',this)">All</div>
+          <div class="chip" onclick="adminReqFilter('Pending Review',this)">Pending</div>
+          <div class="chip" onclick="adminReqFilter('Approved',this)">Approved</div>
+          <div class="chip" onclick="adminReqFilter('Rejected',this)">Rejected</div>
+          <div class="chip" onclick="adminReqFilter('Needs Clarification',this)">Clarification</div>
+        </div>
+      </div>
+      <div class="admin-table">
+        <div class="admin-req-grid admin-req-head">
+          <div>#</div><div>Title</div><div>Type</div><div>Priority</div><div>Status</div><div>Submitter</div><div>Delete</div>
+        </div>
+        <div id="admin-req-body"></div>
+      </div>
+    </div>
+
+    <!-- USER MANAGEMENT -->
+    <div id="admin-page-users" class="admin-page">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+        <div><div class="admin-page-title">User Management</div><div class="admin-page-sub">Add, remove, and manage all system users</div></div>
+        <button class="add-user-btn" onclick="openAddUser()">+ Add User</button>
+      </div>
+      <div class="admin-table">
+        <div class="admin-table-head">
+          <div>#</div><div>Name</div><div>Email</div><div>Role</div><div>Status</div><div>Action</div>
+        </div>
+        <div id="admin-users-body"></div>
+      </div>
+    </div>
+
+    <!-- TAT METRICS -->
+    <div id="admin-page-tat" class="admin-page">
+      <div class="admin-page-title">TAT Metrics</div>
+      <div class="admin-page-sub">Turnaround time analysis — how fast are requests being processed?</div>
+      <div class="tat-kpi-row" style="margin-bottom:20px">
+        <div class="tat-kpi"><div class="kval" style="color:#3B82F6">2.4d</div><div class="klbl">Avg Total TAT</div></div>
+        <div class="tat-kpi"><div class="kval" style="color:#22C55E">1.1d</div><div class="klbl">Avg L1 TAT</div></div>
+        <div class="tat-kpi"><div class="kval" style="color:#F59E0B">1.3d</div><div class="klbl">Avg Final TAT</div></div>
+        <div class="tat-kpi"><div class="kval" style="color:#EF4444">2</div><div class="klbl">Overdue Requests</div></div>
+        <div class="tat-kpi"><div class="kval" style="color:#A78BFA">83%</div><div class="klbl">On-Time Rate</div></div>
+      </div>
+      <div class="tat-grid">
+        <div class="tat-card">
+          <div class="tat-title">TAT by Request Type (avg days)</div>
+          <div class="tat-row"><span class="tat-label">Finance</span><div class="tat-bar-track"><div class="tat-bar-fill" style="width:60%;background:#3B82F6"></div></div><span class="tat-val">3.0d</span></div>
+          <div class="tat-row"><span class="tat-label">IT</span><div class="tat-bar-track"><div class="tat-bar-fill" style="width:40%;background:#A78BFA"></div></div><span class="tat-val">2.0d</span></div>
+          <div class="tat-row"><span class="tat-label">Procurement</span><div class="tat-bar-track"><div class="tat-bar-fill" style="width:50%;background:#2DD4BF"></div></div><span class="tat-val">2.5d</span></div>
+          <div class="tat-row"><span class="tat-label">Legal</span><div class="tat-bar-track"><div class="tat-bar-fill" style="width:30%;background:#F59E0B"></div></div><span class="tat-val">1.5d</span></div>
+          <div class="tat-row"><span class="tat-label">HR</span><div class="tat-bar-track"><div class="tat-bar-fill" style="width:45%;background:#EF4444"></div></div><span class="tat-val">2.2d</span></div>
+        </div>
+        <div class="tat-card">
+          <div class="tat-title">TAT by Approver (avg days)</div>
+          <div class="tat-row"><span class="tat-label">Bob F.</span><div class="tat-bar-track"><div class="tat-bar-fill" style="width:55%;background:#3B82F6"></div></div><span class="tat-val">1.3d</span></div>
+          <div class="tat-row"><span class="tat-label">Carol L.</span><div class="tat-bar-track"><div class="tat-bar-fill" style="width:35%;background:#A78BFA"></div></div><span class="tat-val">0.9d</span></div>
+          <div class="tat-row"><span class="tat-label">David D.</span><div class="tat-bar-track"><div class="tat-bar-fill" style="width:65%;background:#F59E0B"></div></div><span class="tat-val">1.6d</span></div>
+        </div>
+      </div>
+      <div class="tat-card">
+        <div class="tat-title">Monthly Request Volume</div>
+        <div style="display:flex;align-items:flex-end;gap:10px;height:80px;padding-top:10px">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
+            <div style="background:#3B82F6;border-radius:4px 4px 0 0;width:100%;height:30px"></div>
+            <span style="font-size:10px;color:#7A90B8">Jan</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
+            <div style="background:#3B82F6;border-radius:4px 4px 0 0;width:100%;height:45px"></div>
+            <span style="font-size:10px;color:#7A90B8">Feb</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
+            <div style="background:#3B82F6;border-radius:4px 4px 0 0;width:100%;height:65px"></div>
+            <span style="font-size:10px;color:#7A90B8">Mar</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
+            <div style="background:#1A2540;border-radius:4px 4px 0 0;width:100%;height:20px;border:1px dashed #243050"></div>
+            <span style="font-size:10px;color:#7A90B8">Apr</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div id="admin-page-reports" class="admin-page">
+      <div class="admin-page-title">Department Reports</div>
+      <div class="admin-page-sub">Requests breakdown by department and category</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="tat-card">
+          <div class="tat-title">By Department</div>
+          <div class="dept-bars">
+            <div class="dept-row"><span class="dept-label">Operations</span><div class="dept-bar-track"><div class="dept-bar-fill" style="width:100%;background:#3B82F6"></div></div><span class="dept-count">6</span></div>
+            <div class="dept-row"><span class="dept-label">Finance</span><div class="dept-bar-track"><div class="dept-bar-fill" style="width:67%;background:#A78BFA"></div></div><span class="dept-count">4</span></div>
+            <div class="dept-row"><span class="dept-label">Legal</span><div class="dept-bar-track"><div class="dept-bar-fill" style="width:33%;background:#2DD4BF"></div></div><span class="dept-count">2</span></div>
+            <div class="dept-row"><span class="dept-label">HR</span><div class="dept-bar-track"><div class="dept-bar-fill" style="width:17%;background:#F59E0B"></div></div><span class="dept-count">1</span></div>
+          </div>
+        </div>
+        <div class="tat-card">
+          <div class="tat-title">Approval Rate by Type</div>
+          <div class="dept-bars">
+            <div class="dept-row"><span class="dept-label">Finance</span><div class="dept-bar-track"><div class="dept-bar-fill" style="width:50%;background:#22C55E"></div></div><span class="dept-count">50%</span></div>
+            <div class="dept-row"><span class="dept-label">IT</span><div class="dept-bar-track"><div class="dept-bar-fill" style="width:100%;background:#22C55E"></div></div><span class="dept-count">100%</span></div>
+            <div class="dept-row"><span class="dept-label">Legal</span><div class="dept-bar-track"><div class="dept-bar-fill" style="width:100%;background:#22C55E"></div></div><span class="dept-count">100%</span></div>
+            <div class="dept-row"><span class="dept-label">HR</span><div class="dept-bar-track"><div class="dept-bar-fill" style="width:0%;background:#22C55E"></div></div><span class="dept-count">0%</span></div>
+          </div>
+        </div>
+        <div class="tat-card" style="grid-column:1/-1">
+          <div class="tat-title">Priority Distribution</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <div class="tat-kpi" style="flex:1"><div class="kval" style="color:#7A90B8">2</div><div class="klbl">Low</div></div>
+            <div class="tat-kpi" style="flex:1"><div class="kval" style="color:#F59E0B">5</div><div class="klbl">Medium</div></div>
+            <div class="tat-kpi" style="flex:1"><div class="kval" style="color:#EF4444">4</div><div class="klbl">High</div></div>
+            <div class="tat-kpi" style="flex:1"><div class="kval" style="color:#ff0000">1</div><div class="klbl">Critical</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="modal-overlay" id="add-user-modal">
+  <div class="add-modal" style="max-width:500px;max-height:90vh;overflow-y:auto;">
+    <h3 style="font-size:18px;font-weight:800;color:#2563EB;margin-bottom:20px;">&#x1F6E1; Add New User</h3>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#4A6A8A;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;">Full Name *</label>
+        <input id="new-user-name" type="text" placeholder="e.g. John David" style="width:100%;background:#F0F6FF;border:1px solid #C2D9F0;border-radius:10px;padding:10px 12px;color:#1A2E4A;font-size:13px;outline:none;box-sizing:border-box;font-family:var(--font);margin-bottom:0;"/>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#4A6A8A;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;">Mobile Number * <span style="font-size:9px;color:#2563EB;">(Login ID)</span></label>
+        <input id="new-user-mobile" type="tel" placeholder="e.g. 9876543210" style="width:100%;background:#F0F6FF;border:1px solid #C2D9F0;border-radius:10px;padding:10px 12px;color:#1A2E4A;font-size:13px;outline:none;box-sizing:border-box;font-family:var(--font);margin-bottom:0;"/>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label style="font-size:11px;font-weight:700;color:#4A6A8A;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;">Mail ID *</label>
+      <input id="new-user-email" type="text" placeholder="e.g. john.david@BNRIinfra" style="width:100%;background:#F0F6FF;border:1px solid #C2D9F0;border-radius:10px;padding:10px 12px;color:#1A2E4A;font-size:13px;outline:none;box-sizing:border-box;font-family:var(--font);margin-bottom:0;"/>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#4A6A8A;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;">Role *</label>
+        <select id="new-user-role" style="width:100%;background:#F0F6FF;border:1px solid #C2D9F0;border-radius:10px;padding:10px 12px;color:#1A2E4A;font-size:13px;outline:none;box-sizing:border-box;font-family:var(--font);margin-bottom:0;">
+          <option value="requester">Requester</option>
+          <option value="approver_finance">Finance Approver</option>
+          <option value="approver_it">IT Approver</option>
+          <option value="approver_legal">Legal Approver</option>
+          <option value="approver_hr">HR Approver</option>
+          <option value="final_approver">Final Approver</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#4A6A8A;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;">Department *</label>
+        <input id="new-user-dept" type="text" placeholder="e.g. Finance" style="width:100%;background:#F0F6FF;border:1px solid #C2D9F0;border-radius:10px;padding:10px 12px;color:#1A2E4A;font-size:13px;outline:none;box-sizing:border-box;font-family:var(--font);margin-bottom:0;"/>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#4A6A8A;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;">Password *</label>
+        <input id="new-user-pwd" type="password" placeholder="Min 6 characters" style="width:100%;background:#F0F6FF;border:1px solid #C2D9F0;border-radius:10px;padding:10px 12px;color:#1A2E4A;font-size:13px;outline:none;box-sizing:border-box;font-family:var(--font);margin-bottom:0;"/>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#4A6A8A;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;">Confirm Password *</label>
+        <input id="new-user-pwd2" type="password" placeholder="Re-enter password" style="width:100%;background:#F0F6FF;border:1px solid #C2D9F0;border-radius:10px;padding:10px 12px;color:#1A2E4A;font-size:13px;outline:none;box-sizing:border-box;font-family:var(--font);margin-bottom:0;"/>
+      </div>
+    </div>
+
+    <div id="add-user-error" style="display:none;background:#FEE2E2;border:1px solid #DC2626;border-radius:8px;padding:10px 14px;font-size:12px;color:#DC2626;font-weight:600;margin-bottom:12px;"></div>
+
+    <!-- WhatsApp Info -->
+    <div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:11px;color:#15803D;font-weight:700;">📱 WhatsApp Auto Notifications</div>
+      <div style="font-size:11px;color:#166534;margin-top:4px;">Request intake: <strong>https://wa.me/qr/6WXDACG23Z3RP1</strong> | <strong>9500329430</strong><br/>Owner approval: <strong>https://wa.me/message/KDRAPEQYUHEBB1</strong> | <strong>9150459992</strong></div>
+    </div>
+
+
+      <button class="add-cancel" onclick="closeAddUser()">Cancel</button>
+      <button class="add-confirm" onclick="confirmAddUser()">Add User</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal" style="max-width:400px;">
+    <h3 id="confirm-title" style="font-size:17px;margin-bottom:12px;"></h3>
+    <p id="confirm-msg" style="font-size:13px;color:#7A90B8;line-height:1.7;margin-bottom:20px;"></p>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="modal-confirm" id="confirm-ok-btn" onclick="executeConfirm()">Delete</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- FORCE PASSWORD CHANGE MODAL -->
+<div class="modal-overlay" id="fpc-modal" style="align-items:center;">
+  <div class="modal" style="border-radius:20px;max-width:420px;">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:40px;">&#x1F510;</div>
+      <h3 style="font-size:20px;font-weight:800;color:#1A2E4A;margin-bottom:6px;">Set New Password</h3>
+      <p style="font-size:13px;color:#4A6A8A;">Welcome <strong id="fpc-name"></strong>! Please set a new password to continue.</p>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:11px;color:#4A6A8A;font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:6px;">New Password</label>
+      <input id="fpc-new" type="password" placeholder="Minimum 6 characters" style="width:100%;background:#F0F6FF;border:1px solid #C2D9F0;border-radius:10px;padding:12px 14px;color:#1A2E4A;font-size:14px;outline:none;font-family:var(--font);box-sizing:border-box;"/>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:11px;color:#4A6A8A;font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:6px;">Confirm Password</label>
+      <input id="fpc-confirm" type="password" placeholder="Re-enter password" style="width:100%;background:#F0F6FF;border:1px solid #C2D9F0;border-radius:10px;padding:12px 14px;color:#1A2E4A;font-size:14px;outline:none;font-family:var(--font);box-sizing:border-box;" onkeydown="if(event.key==='Enter')window._BNRIFpcSubmit()"/>
+    </div>
+    <div id="fpc-err" style="display:none;background:#FEE2E2;border:1px solid #DC2626;border-radius:8px;padding:10px 14px;font-size:12px;color:#DC2626;font-weight:600;margin-bottom:12px;"></div>
+    <button onclick="window._BNRIFpcSubmit()" style="width:100%;background:#2563EB;border:none;border-radius:10px;padding:13px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);">Save &amp; Continue</button>
+  </div>
+</div>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const STATUS_COLOR = {
+  'Pending Review':'var(--amber)','Under Review':'var(--blue)',
+  'Needs Clarification':'var(--purple)','Approved L1':'var(--teal)',
+  'Pending Final':'var(--teal)','Approved':'var(--green)','Rejected':'var(--red)'
+};
+const TYPE_COLOR = {
+  Finance:'var(--blue)',IT:'var(--purple)',Procurement:'var(--teal)',Legal:'var(--amber)',HR:'var(--red)'
+};
+const PRIORITY_COLOR = {Low:'var(--text2)',Medium:'var(--amber)',High:'var(--red)',Critical:'#ff0000'};
+
+let currentUser = {name:'Alice R.',role:'requester',email:'alice@BNRIinfra.com'};
+let currentAction = '';
+let currentDetailId = null;
+let filterStatus = 'All';
+let viewMode = 'all'; // 'all' or 'mine'
+
+function setViewMode(mode) {
+  viewMode = mode;
+  filterStatus = 'All';
+  document.querySelectorAll('.filter-chips .chip').forEach(c=>c.classList.remove('active'));
+  document.querySelector('.filter-chips .chip')?.classList.add('active');
+  renderRequests();
+}
+
+const MOCK_REQUESTS = [];
+
+function selectRole(){}  // legacy stub
+
+function highlightTab(mode) {
+  const allBtn  = document.getElementById('tab-all');
+  const mineBtn = document.getElementById('tab-mine');
+  if(mode === 'all') {
+    allBtn.style.background  = 'var(--blue)'; allBtn.style.color  = '#fff';
+    mineBtn.style.background = 'transparent'; mineBtn.style.color = 'var(--text2)';
+  } else {
+    mineBtn.style.background = 'var(--blue)'; mineBtn.style.color  = '#fff';
+    allBtn.style.background  = 'transparent'; allBtn.style.color  = 'var(--text2)';
+  }
+}
+
+function doLogin() {
+  var uname = (document.getElementById('login-user').value||'').trim().toLowerCase();
+  var pwd   = (document.getElementById('login-pass').value||'').trim();
+  var err   = document.getElementById('login-error');
+  var found = MOCK_USERS.find(function(u){ return u.username.toLowerCase()===uname && u.active; });
+  if(!found || found.password !== pwd){ err.textContent='Invalid mobile number or password.'; err.style.display='block'; return; }
+  err.style.display='none';
+  currentUser = {name:found.name, role:found.role, username:found.username, dept:found.dept||''};
+  if(found.mustChangePwd){
+    document.getElementById('fpc-name').textContent = found.name;
+    document.getElementById('fpc-modal').classList.add('open');
+    return;
+  }
+  launchApp();
+}
+
+function launchApp(){
+  document.getElementById('login-screen').classList.remove('active');
+  if(currentUser.role==='admin'){
+    document.getElementById('admin-shell').classList.add('active');
+    renderAdminOverview(); renderAdminUsers(); renderAdminRequests();
+    return;
+  }
+  document.getElementById('app-shell').classList.add('active');
+  document.getElementById('sb-name').textContent = currentUser.name;
+  document.getElementById('sb-avatar').textContent = currentUser.name[0];
+  var rl={requester:'Requester',approver_finance:'Finance Approver',approver_it:'IT Approver',approver_legal:'Legal Approver',approver_hr:'HR Approver',final_approver:'Final Approver'};
+  document.getElementById('sb-role').textContent = rl[currentUser.role]||currentUser.role;
+  document.getElementById('dash-subtitle').textContent = 'Welcome back, '+currentUser.name.split(' ')[0];
+  document.getElementById('new-req-nav').style.display = 'flex';
+  renderDashboard();
+  document.getElementById('my-req-nav').style.display = currentUser.role==='requester' ? 'none' : 'flex';
+  var tabMine = document.getElementById('tab-mine');
+  if(tabMine) tabMine.style.display = currentUser.role==='requester' ? 'none' : 'inline-block';
+  var pendingS=['Pending Review','Under Review','Needs Clarification'];
+  var pc=MOCK_REQUESTS.filter(function(r){
+    if(currentUser.role==='requester') return r.submitter===currentUser.name && !['Approved','Rejected'].includes(r.status);
+    if(currentUser.role==='final_approver') return ['Pending Final','Approved L1'].includes(r.status);
+    if(currentUser.role==='approver_finance') return r.type==='Finance' && pendingS.includes(r.status);
+    if(currentUser.role==='approver_it')      return r.type==='IT' && pendingS.includes(r.status);
+    if(currentUser.role==='approver_legal')   return r.type==='Legal' && pendingS.includes(r.status);
+    if(currentUser.role==='approver_hr')      return r.type==='HR' && pendingS.includes(r.status);
+    return false;
+  }).length;
+  document.getElementById('pending-badge').textContent = pc;
+  // Always land on dashboard first
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-dashboard').classList.add('active');
+  document.querySelector('.nav-item').classList.add('active');
+  renderDashboard();
+}
+
+function submitForcedPwd(){
+  var np=document.getElementById('fpc-new').value.trim();
+  var cp=document.getElementById('fpc-confirm').value.trim();
+  var er=document.getElementById('fpc-err');
+  if(np.length<6){er.textContent='Min 6 characters required';er.style.display='block';return;}
+  if(np!==cp){er.textContent='Passwords do not match';er.style.display='block';return;}
+  var u=MOCK_USERS.find(function(x){return x.username===currentUser.username;});
+  if(u){u.password=np;u.mustChangePwd=false;}
+  document.getElementById('fpc-modal').classList.remove('open');
+  showToast('Password updated! Welcome '+currentUser.name.split(' ')[0]);
+  launchApp();
+}
+
+function doLogout() {
+  document.getElementById('app-shell').classList.remove('active');
+  document.getElementById('login-screen').classList.add('active');
+  document.getElementById('login-user').value='';
+  document.getElementById('login-pass').value='';
+  document.getElementById('login-error').style.display='none';
+  document.getElementById('login-step1').style.display='block';
+  document.getElementById('login-step2-requester').style.display='none';
+  document.getElementById('login-step2-staff').style.display='none';
+}
+
+function showPage(page, navEl) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(navEl) navEl.classList.add('active');
+  if(page==='requests') { renderRequests(); highlightTab(viewMode); }
+  if(page==='dashboard') { renderDashboard(); }
+}
+
+function renderRequests() {
+  const body = document.getElementById('requests-body');
+  let reqs = MOCK_REQUESTS;
+
+  // Filter by view mode
+  if(viewMode === 'mine') {
+    if(currentUser.role === 'requester') {
+      reqs = reqs.filter(r => r.submitter === currentUser.name);
+      document.getElementById('req-page-sub').textContent = reqs.length + ' request' + (reqs.length!==1?'s':'') + ' submitted by you';
+    } else {
+      var pendingStatuses = ['Pending Review','Under Review','Needs Clarification'];
+      reqs = reqs.filter(function(r) {
+        if(['Approved','Rejected'].includes(r.status)) return false;
+        if(currentUser.role === 'final_approver')    return ['Pending Final','Approved L1'].includes(r.status);
+        if(currentUser.role === 'approver_finance')  return r.type === 'Finance' && pendingStatuses.includes(r.status);
+        if(currentUser.role === 'approver_it')       return r.type === 'IT' && pendingStatuses.includes(r.status);
+        if(currentUser.role === 'approver_legal')    return r.type === 'Legal' && pendingStatuses.includes(r.status);
+        if(currentUser.role === 'approver_hr')       return r.type === 'HR' && pendingStatuses.includes(r.status);
+        return false;
+      });
+      document.getElementById('req-page-sub').textContent = reqs.length + ' pending request' + (reqs.length!==1?'s':'') + ' assigned to you';
+    }
+    document.getElementById('req-page-title').textContent = 'My Tasks';
+  } else {
+    // All Requests — filter by user's department
+    // Approvers: filter by their request type
+    // Requesters: filter by their department
+    // Final Approver & Admin: see everything
+    var typeMap = {approver_finance:'Finance', approver_it:'IT', approver_legal:'Legal', approver_hr:'HR'};
+    if(currentUser.role === 'final_approver' || currentUser.role === 'admin') {
+      // Final approver & Admin sees all
+    } else if(typeMap[currentUser.role]) {
+      // L1 Approver — sees their type only
+      var myType = typeMap[currentUser.role];
+      reqs = reqs.filter(function(r){ return r.type === myType; });
+    } else if(currentUser.role === 'requester') {
+      // Requester — sees their department's requests
+      var myDept = currentUser.dept || '';
+      if(myDept) reqs = reqs.filter(function(r){ return r.dept === myDept || r.submitter === currentUser.name; });
+      else reqs = reqs.filter(function(r){ return r.submitter === currentUser.name; });
+    }
+    document.getElementById('req-page-title').textContent = 'All Requests';
+    document.getElementById('req-page-sub').textContent = reqs.length + ' request' + (reqs.length!==1?'s':'') + ' in your scope';
+  }
+
+  // Filter by status chip
+  if(filterStatus !== 'All') reqs = reqs.filter(r=>r.status===filterStatus);
+  body.innerHTML = reqs.map(r => {
+    const sc = STATUS_COLOR[r.status]||'var(--text2)';
+    const tc = TYPE_COLOR[r.type]||'var(--text2)';
+    const pc = PRIORITY_COLOR[r.priority]||'var(--text2)';
+    const lastComment = r.comments.length ? '💬 ' + r.comments[r.comments.length-1].user + ': ' + r.comments[r.comments.length-1].text : '';
+    const approverRoles = ['approver_finance','approver_it','approver_legal','approver_hr','final_approver'];
+  const typeRoleMap = {Finance:'approver_finance',IT:'approver_it',Legal:'approver_legal',HR:'approver_hr',Procurement:'approver_it'};
+  const isRelevantApprover = currentUser.role === 'final_approver' ||
+    typeRoleMap[r.type] === currentUser.role;
+  // Check if current user already acted on this request
+  const alreadyActed = r.approvals.some(function(a){
+    return a.by === currentUser.name;
+  });
+  // Final approver: only show when status is Pending Final
+  // L1 approver: only show when status is Pending Review / Under Review / Needs Clarification
+  const l1Statuses = ['Pending Review','Under Review','Needs Clarification'];
+  const isCorrectStage = currentUser.role === 'final_approver'
+    ? ['Pending Final','Approved L1'].includes(r.status)
+    : l1Statuses.includes(r.status);
+  const canAct = isRelevantApprover && isCorrectStage && !alreadyActed;
+    return `<div class="table-row" onclick="showDetail(${r.id})">
+      <div><span class="ref-no">${r.ref}</span></div>
+      <div class="req-title-cell"><div class="title">${r.title}</div><div class="comment">${lastComment}</div></div>
+      <div><span class="type-badge" style="background:${tc}22;color:${tc}">${r.type}</span></div>
+      <div><span class="priority-badge" style="background:${pc}22;color:${pc}">${r.priority}</span></div>
+      <div><span class="status-badge" style="background:${sc}22;color:${sc}">${r.status}</span></div>
+      <div class="action-btns" onclick="event.stopPropagation()">
+        ${canAct ? `<button class="tbl-btn" style="background:var(--green-dim);color:var(--green)" onclick="openModal('Approved',${r.id})">✓</button>
+        <button class="tbl-btn" style="background:var(--red-dim);color:var(--red)" onclick="openModal('Rejected',${r.id})">✗</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterRequests(val) {
+  const rows = document.querySelectorAll('.table-row');
+  rows.forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(val.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function setFilter(status, el) {
+  filterStatus = status;
+  document.querySelectorAll('.filter-chips .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderRequests();
+}
+
+function getCurrentLevel(r) {
+  if(r.status === 'Approved') return 'done';
+  if(r.status === 'Rejected') return 'rejected';
+  if(['Pending Final'].includes(r.status)) return 'final';
+  if(['Under Review','Needs Clarification','Approved L1'].includes(r.status)) return 'l1';
+  return 'submitted'; // Pending Review
+}
+
+function buildWorkflowHTML(r, _unused1, _unused2) {
+  const isRej   = r.status === 'Rejected';
+  const isDone  = r.status === 'Approved';
+  const curLevel = getCurrentLevel(r);
+  // Dynamic approver names
+  var finalApproverName = getFinalApproverName();
+  
+
+  const STATUS_STEP = {
+    'Pending Review':       0,
+    'Under Review':         1,
+    'Needs Clarification':  1,
+    'Approved L1':          1,
+    'Pending Final':        2,
+    'Approved':             3,
+    'Rejected':             -1,
+  };
+  const curStep = STATUS_STEP[r.status] ?? 0;
+
+  // ── Role-based step visibility ─────────────
+  const l1Roles = ['approver_finance','approver_it','approver_legal','approver_hr'];
+  const showAllSteps = currentUser.role === 'requester' || currentUser.role === 'admin' || viewMode !== 'mine';
+  const showL1Step   = showAllSteps || l1Roles.includes(currentUser.role);
+  const showFinalStep= showAllSteps || currentUser.role === 'final_approver';
+
+  // ── Progress bar ───────────────────────────────────────────
+  const steps = [
+    {label:'Submitted', icon:'📝'},
+    {label:'L1 Review', icon:'👤'},
+    {label:'Final Review', icon:'👑'},
+    {label:'Approved', icon:'✅'},
+  ];
+  const wfHTML = `<div class="workflow-status">
+    ${steps.map((s,i)=>{
+      let cls = '';
+      if(isRej && i <= curStep) cls = 'rejected-step';
+      else if(i < curStep)      cls = 'done';
+      else if(i === curStep)    cls = 'active';
+      return `<div class="wf-step ${cls}"><span class="wf-icon">${s.icon}</span>${s.label}</div>`;
+    }).join('')}
+  </div>`;
+
+  const l1Approvals    = r.approvals.filter(a => a.stage === 'L1');
+  const finalApprovals = r.approvals.filter(a => a.stage === 'Final');
+  const l1Assignee     = (r.type==='Legal'||r.type==='HR') ? 'Carol L. (Legal/HR)' : 'Bob F. (Finance/IT)';
+
+  // ── Card builders ──────────────────────────────────────────
+  function approvalCard(a, isCurrentLevel) {
+    const ac   = a.action==='Approved' ? 'var(--green)' : a.action==='Rejected' ? 'var(--red)' : 'var(--purple)';
+    const icon = a.action==='Approved' ? '✓' : a.action==='Rejected' ? '✗' : '?';
+    const cls  = a.action==='Approved' ? 'approved' : a.action==='Rejected' ? 'rejected' : 'clarification';
+    const stageBg    = a.stage==='Final' ? 'var(--amber-dim)' : 'var(--blue-dim)';
+    const stageColor = a.stage==='Final' ? 'var(--amber)' : 'var(--blue)';
+    const glowStyle  = isCurrentLevel
+      ? `box-shadow:0 0 0 2px ${ac};`
+      : '';
+    return `<div class="tl-item">
+      <div class="tl-item-inner ${cls}" style="${glowStyle}">
+        ${isCurrentLevel ? `<div style="position:absolute;top:-10px;left:14px;background:${ac};color:#000;font-size:9px;font-weight:800;padding:2px 8px;border-radius:6px;letter-spacing:.5px;">CURRENT LEVEL</div>` : ''}
+        <div class="tl-dot" style="background:${ac}22;color:${ac};border-color:${ac}">${icon}</div>
+        <div class="tl-body">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div class="tl-action" style="color:${ac}">${a.action}</div>
+            <span class="tl-stage-badge" style="background:${stageBg};color:${stageColor}">${a.stage} · ${a.by}</span>
+          </div>
+          <div class="tl-who">
+            <span>🕐</span><span class="tl-time">${a.time}</span>
+            <span style="color:var(--text3)">·</span>
+            <span>${a.by}</span>
+          </div>
+          ${a.comment ? `<div class="tl-comment">💬 "${a.comment}"</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function awaitingCard(stageLabel, who, isCurrentLevel) {
+    const glowStyle = isCurrentLevel ? 'box-shadow:0 0 0 2px var(--amber);border-color:var(--amber);' : '';
+    return `<div class="tl-item">
+      <div class="tl-item-inner pending" style="${glowStyle}">
+        ${isCurrentLevel ? `<div style="position:absolute;top:-10px;left:14px;background:var(--amber);color:#000;font-size:9px;font-weight:800;padding:2px 8px;border-radius:6px;letter-spacing:.5px;">CURRENT LEVEL ⏳</div>` : ''}
+        <div class="tl-dot" style="background:var(--amber-dim);color:var(--amber);border-color:var(--amber);">⏳</div>
+        <div class="tl-body">
+          <div class="tl-action" style="color:var(--amber);">Awaiting ${stageLabel} Approval</div>
+          <div class="tl-who" style="margin-top:4px;">
+            <span style="font-size:12px;color:var(--text2);">Assigned to: <strong style="color:var(--text);">${who}</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function lockedCard(reason) {
+    return `<div class="tl-item">
+      <div class="tl-item-inner pending">
+        <div class="tl-dot" style="background:var(--bg4);color:var(--text3);border-color:var(--border)">🔒</div>
+        <div class="tl-body">
+          <div class="tl-action" style="color:var(--text3);">Locked</div>
+          <div class="tl-who"><span style="font-size:12px;color:var(--text3);">${reason}</span></div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── Assemble timeline ──────────────────────────────────────
+  let html = wfHTML;
+
+  // STEP 1 — SUBMITTED
+  const isSubmittedCurrent = curLevel === 'submitted';
+  html += `<div class="tl-stage-label" style="${isSubmittedCurrent?'color:var(--amber)':''}">
+    Step 1 — Submitted ${isSubmittedCurrent?'<span style="font-size:10px;background:var(--amber);color:#000;padding:1px 7px;border-radius:5px;margin-left:6px;">CURRENT</span>':''}
+  </div>`;
+  html += `<div class="tl-item">
+    <div class="tl-item-inner approved" ${isSubmittedCurrent?'style="box-shadow:0 0 0 2px var(--blue);"':''}>
+      ${isSubmittedCurrent ? `<div style="position:absolute;top:-10px;left:14px;background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:2px 8px;border-radius:6px;letter-spacing:.5px;">CURRENT LEVEL</div>` : ''}
+      <div class="tl-dot" style="background:var(--blue-dim);color:var(--blue);border-color:var(--blue)">📝</div>
+      <div class="tl-body">
+        <div class="tl-action" style="color:var(--blue)">Request Submitted</div>
+        <div class="tl-who"><span>👤</span><span>${r.submitter}</span><span class="tl-time">${r.date}</span></div>
+        ${isSubmittedCurrent ? `<div class="tl-comment" style="border-left-color:var(--amber);color:var(--amber);">⏳ Waiting to be picked up by ${l1Assignee}</div>` : ''}
+      </div>
+    </div>
+  </div>`;
+
+  // STEP 2 — L1 (only for L1 approvers, requesters, admins)
+  const isL1Current = curLevel === 'l1';
+  if(showL1Step) {
+    html += `<div class="tl-stage-label" style="${isL1Current?'color:var(--amber)':''}">
+      Step 2 — L1 Approval (${l1Assignee}) ${isL1Current?'<span style="font-size:10px;background:var(--amber);color:#000;padding:1px 7px;border-radius:5px;margin-left:6px;">CURRENT</span>':''}
+    </div>`;
+    if(l1Approvals.length) {
+      html += l1Approvals.map(a => approvalCard(a, isL1Current && a === l1Approvals[l1Approvals.length-1])).join('');
+    } else {
+      html += awaitingCard('L1', l1Assignee, isL1Current);
+    }
+  }
+
+  // STEP 3 — FINAL (only for final approver, requesters, admins)
+  const isFinalCurrent = curLevel === 'final';
+  if(showFinalStep && (!isRej || finalApprovals.length)) {
+    html += `<div class="tl-stage-label" style="${isFinalCurrent?'color:var(--amber)':''}">
+      Step 3 — Final Approval (${getFinalApproverName()}) ${isFinalCurrent?'<span style="font-size:10px;background:var(--amber);color:#000;padding:1px 7px;border-radius:5px;margin-left:6px;">CURRENT</span>':''}
+    </div>`;
+    if(finalApprovals.length) {
+      html += finalApprovals.map(a => approvalCard(a, isFinalCurrent && a === finalApprovals[finalApprovals.length-1])).join('');
+    } else if(l1Approvals.some(a => a.action === 'Approved')) {
+      html += awaitingCard('Final', getFinalApproverName(), isFinalCurrent);
+    } else {
+      html += lockedCard('Waiting for L1 approval before escalating to Director');
+    }
+  }
+
+  // FINAL OUTCOME
+  if(isRej) {
+    html += `<div class="tl-stage-label" style="color:var(--red)">❌ Request Rejected</div>`;
+    html += `<div class="tl-item"><div class="tl-item-inner rejected" style="box-shadow:0 0 0 2px var(--red)">
+      <div class="tl-dot" style="background:var(--red-dim);color:var(--red);border-color:var(--red)">✗</div>
+      <div class="tl-body">
+        <div class="tl-action" style="color:var(--red)">Request has been rejected</div>
+        <div class="tl-who"><span style="font-size:12px;color:var(--text2)">No further action required</span></div>
+      </div>
+    </div></div>`;
+  } else if(isDone) {
+    html += `<div class="tl-stage-label" style="color:var(--green)">✅ Fully Approved</div>`;
+    html += `<div class="tl-item"><div class="tl-item-inner approved" style="box-shadow:0 0 0 2px var(--green)">
+      <div class="tl-dot" style="background:var(--green-dim);color:var(--green);border-color:var(--green)">🎉</div>
+      <div class="tl-body">
+        <div class="tl-action" style="color:var(--green)">Approved at all levels — Request complete!</div>
+        <div class="tl-who"><span style="font-size:12px;color:var(--text2)">L1 ✓ + Final ✓ — fully processed</span></div>
+      </div>
+    </div></div>`;
+  }
+
+  return html;
+}
+
+function getCurrentLevelBanner(r) {
+  const l1Assignee       = getL1ApproverName(r.type);
+  const finalApproverName = getFinalApproverName();
+  const banners = {
+    'Pending Review': {
+      icon:'⏳', color:'#F59E0B', bg:'#78350f22', border:'#F59E0B',
+      title:'Waiting for L1 Review',
+      msg:`Your request has been submitted and is waiting to be picked up by <strong>${l1Assignee}</strong>`
+    },
+    'Under Review': {
+      icon:'👀', color:'#3B82F6', bg:'#1e3a6e22', border:'#3B82F6',
+      title:'Under Review — L1',
+      msg:`<strong>${l1Assignee}</strong> is currently reviewing your request`
+    },
+    'Needs Clarification': {
+      icon:'❓', color:'#A78BFA', bg:'#4c1d9522', border:'#A78BFA',
+      title:'Clarification Requested',
+      msg:`<strong>${l1Assignee}</strong> has requested clarification — please check the comments below`
+    },
+    'Approved L1': {
+      icon:'✓', color:'#2DD4BF', bg:'#134e4a22', border:'#2DD4BF',
+      title:'L1 Approved — Awaiting Final',
+      msg:`L1 approved! Now waiting for <strong>${getFinalApproverName()}</strong> to give final approval`
+    },
+    'Pending Final': {
+      icon:'👑', color:'#F59E0B', bg:'#78350f22', border:'#F59E0B',
+      title:'Awaiting Final Approval',
+      msg:`Your request is with <strong>${getFinalApproverName()}</strong> for final approval`
+    },
+    'Approved': {
+      icon:'🎉', color:'#22C55E', bg:'#14532d22', border:'#22C55E',
+      title:'Fully Approved!',
+      msg:`Your request has been approved at all levels — L1 ✓ and Final ✓`
+    },
+    'Rejected': {
+      icon:'✗', color:'#EF4444', bg:'#7f1d1d22', border:'#EF4444',
+      title:'Request Rejected',
+      msg:`Your request was rejected. Please check the comments for details`
+    },
+  };
+  const b = banners[r.status];
+  if(!b) return '';
+  return `<div style="background:${b.bg};border:1px solid ${b.border};border-radius:14px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:flex-start;gap:14px;">
+    <div style="font-size:24px;flex-shrink:0;margin-top:2px">${b.icon}</div>
+    <div style="flex:1">
+      <div style="font-size:15px;font-weight:700;color:${b.color};margin-bottom:4px">${b.title}</div>
+      <div style="font-size:13px;color:#7A90B8;line-height:1.6">${b.msg}</div>
+    </div>
+    <div style="flex-shrink:0">
+      <span style="font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;background:${b.border}22;color:${b.color};border:1px solid ${b.border};letter-spacing:.5px">CURRENT STATUS</span>
+    </div>
+  </div>`;
+}
+
+function showDetail(id) {
+  currentDetailId = id;
+  const r = MOCK_REQUESTS.find(x=>x.id===id);
+  const sc = STATUS_COLOR[r.status]||'var(--text2)';
+  const approverRoles = ['approver_finance','approver_it','approver_legal','approver_hr','final_approver'];
+  const typeRoleMap = {Finance:'approver_finance',IT:'approver_it',Legal:'approver_legal',HR:'approver_hr',Procurement:'approver_it'};
+  const isRelevantApprover = currentUser.role === 'final_approver' ||
+    typeRoleMap[r.type] === currentUser.role;
+  // Check if current user already acted on this request
+  const alreadyActed = r.approvals.some(function(a){
+    return a.by === currentUser.name;
+  });
+  // Final approver: only show when status is Pending Final
+  // L1 approver: only show when status is Pending Review / Under Review / Needs Clarification
+  const l1Statuses = ['Pending Review','Under Review','Needs Clarification'];
+  const isCorrectStage = currentUser.role === 'final_approver'
+    ? ['Pending Final','Approved L1'].includes(r.status)
+    : l1Statuses.includes(r.status);
+  const canAct = isRelevantApprover && isCorrectStage && !alreadyActed;
+  // Compute current level for progress steps
+  const curLevel = (function(){
+    if(r.status==='Approved') return 'done';
+    if(r.status==='Rejected') return 'rejected';
+    if(['Pending Final','Approved L1'].includes(r.status)) return 'final';
+    if(['Under Review','Needs Clarification'].includes(r.status)) return 'l1';
+    return 'submitted';
+  })();
+  const isRej = r.status === 'Rejected';
+  const approvalHTML = buildWorkflowHTML(r);
+  const isMyRequest = viewMode === 'mine' || r.submitter === currentUser.name;
+  const currentLevelBanner = isMyRequest ? getCurrentLevelBanner(r) : '';
+
+  // Build merged timeline: submitted first, then approvals+comments sorted by time
+  const timelineEntries = [];
+
+  // 1. Submitted always first
+  timelineEntries.push({
+    type: 'submitted',
+    user: r.submitter,
+    time: r.date,
+    text: 'Request submitted',
+    stage: '',
+    _sort: 0
+  });
+
+  // Add sequence numbers for stable insertion-order tracking
+  var _seq = 0;
+  r.approvals.forEach(function(a){ if(!a._seq) a._seq = ++_seq * 10; });
+  r.comments.forEach(function(c){ if(!c._seq) c._seq = ++_seq * 10; });
+
+  // 2. Approvals
+  r.approvals.forEach(function(a){
+    timelineEntries.push({
+      type: a.action === 'Approved' ? 'approved' : a.action === 'Rejected' ? 'rejected' : 'clarify',
+      user: a.by,
+      time: a.time,
+      text: a.comment || '',
+      stage: a.stage,
+      action: a.action,
+      _seq: a._seq
+    });
+  });
+
+  // 3. Comments — merge with approvals by time + seq
+  r.comments.forEach(function(c){
+    timelineEntries.push({
+      type: 'comment',
+      user: c.user,
+      time: c.time,
+      text: c.text,
+      stage: '',
+      _seq: c._seq
+    });
+  });
+  function parseTimeVal(t) {
+    try { return new Date(t).getTime(); } catch(e) { return 0; }
+  }
+
+  // Type priority: submitted=0, comment=1, approval actions=2
+  function typePriority(type) {
+    if(type === 'submitted') return 0;
+    if(type === 'comment') return 1;
+    return 2; // approved, rejected, clarify
+  }
+
+  const sorted = [timelineEntries[0]].concat(
+    timelineEntries.slice(1).sort(function(a,b){
+      var ta = parseTimeVal(a.time);
+      var tb = parseTimeVal(b.time);
+      if(ta !== tb) return ta - tb;
+      // Same time — use insertion sequence order
+      return (a._seq || 0) - (b._seq || 0);
+    })
+  );
+
+  const typeStyle = {
+    submitted: {bg:'#DBEAFE', border:'#2563EB', color:'#1D4ED8', icon:'📝', label:'Submitted'},
+    approved:  {bg:'#DCFCE7', border:'#16A34A', color:'#15803D', icon:'✓',  label:'Approved'},
+    rejected:  {bg:'#FEE2E2', border:'#DC2626', color:'#B91C1C', icon:'✗',  label:'Rejected'},
+    clarify:   {bg:'#EDE9FE', border:'#7C3AED', color:'#6D28D9', icon:'?',  label:'Clarification'},
+    comment:   {bg:'#F0F6FF', border:'#C2D9F0', color:'#4A6A8A', icon:'💬', label:'Comment'}
+  };
+
+  const commentsHTML = sorted.map(function(e){
+    const s = typeStyle[e.type] || typeStyle.comment;
+    const stageBadge = e.stage ? `<span style="font-size:9px;background:#F0F6FF;color:#4A6A8A;border:1px solid #C2D9F0;border-radius:4px;padding:1px 6px;margin-left:4px;">${e.stage}</span>` : '';
+    const actionLabel = (e.type !== 'comment' && e.type !== 'submitted') ?
+      `<span style="font-size:10px;font-weight:700;color:${s.color};background:${s.bg};border:1px solid ${s.border};border-radius:6px;padding:2px 8px;margin-left:6px;">${s.label}</span>` : '';
+
+    // Submitted entry — show full request details
+    if(e.type === 'submitted') {
+      const attHTML = r.docs.length
+        ? r.docs.map(d=>`<span style="font-size:11px;background:#F0F6FF;border:1px solid #C2D9F0;border-radius:6px;padding:2px 8px;margin-right:4px;">📄 ${d.name} <span style="color:#2563EB">v${d.ver}</span></span>`).join('')
+        : '<span style="font-size:11px;color:var(--text3);">No attachments</span>';
+      return `<div style="display:flex;gap:10px;margin-bottom:12px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:${s.bg};border:1.5px solid ${s.border};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${s.color};flex-shrink:0;">📝</div>
+        <div style="flex:1;background:${s.bg};border:1px solid ${s.border};border-radius:10px;padding:12px 14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <span style="font-size:12px;font-weight:700;color:var(--text);">${e.user}</span>
+            <span style="font-size:10px;color:var(--text3);">${e.time}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+            <div style="font-size:11px;color:var(--text2);">Title<br><strong style="font-size:13px;color:var(--text);">${r.title}</strong></div>
+            <div style="font-size:11px;color:var(--text2);">Type<br><strong style="font-size:13px;color:var(--text);">${r.type}</strong></div>
+            <div style="font-size:11px;color:var(--text2);">Priority<br><strong style="font-size:13px;color:${PRIORITY_COLOR[r.priority]||'var(--text)'};">${r.priority}</strong></div>
+            <div style="font-size:11px;color:var(--text2);">Department<br><strong style="font-size:13px;color:var(--text);">${r.dept}</strong></div>
+          </div>
+          ${r.desc ? `<div style="font-size:12px;color:var(--text2);background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:8px;border-left:3px solid #2563EB;line-height:1.6;">${r.desc}</div>` : ''}
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Attachments</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">${attHTML}</div>
+        </div>
+      </div>`;
+    }
+
+    return `<div style="display:flex;gap:10px;margin-bottom:12px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:${s.bg};border:1.5px solid ${s.border};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${s.color};flex-shrink:0;">${s.icon}</div>
+      <div style="flex:1;background:${s.bg};border:1px solid ${s.border}22;border-radius:10px;padding:9px 12px;">
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px;">
+          <span style="font-size:12px;font-weight:700;color:var(--text);">${e.user}</span>
+          ${actionLabel}${stageBadge}
+          <span style="font-size:10px;color:var(--text3);margin-left:auto;">${e.time}</span>
+        </div>
+        ${e.text ? `<div style="font-size:13px;color:var(--text2);line-height:1.5;">${e.text}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const fileIcon = function(name) {
+    var ext = name.split('.').pop().toLowerCase();
+    if(ext==='pdf') return '📄';
+    if(['xlsx','xls','csv'].includes(ext)) return '📊';
+    if(['docx','doc'].includes(ext)) return '📝';
+    if(['jpg','jpeg','png','gif'].includes(ext)) return '🖼️';
+    return '📁';
+  };
+  const fileType = function(name) {
+    var ext = name.split('.').pop().toUpperCase();
+    return ext + ' File';
+  };
+
+  const docsHTML = r.docs.length ? r.docs.map(d=>`
+    <div class="doc-item" onclick="showAttachmentPreview('${d.name}','${r.submitter}','${r.date}',${d.ver},'${r.ref}')" style="cursor:pointer;transition:.15s;border-radius:8px;padding:8px;margin:-8px;margin-bottom:0;" onmouseover="this.style.background='#F0F6FF'" onmouseout="this.style.background='transparent'">
+      <span class="doc-icon">${fileIcon(d.name)}</span>
+      <span class="doc-name">${d.name}</span>
+      <span class="doc-ver">v${d.ver}</span>
+      <span style="font-size:10px;color:var(--blue);margin-left:auto;">View →</span>
+    </div>`).join('') : '<p style="color:var(--text3);font-size:13px">No attachments</p>';
+
+  document.getElementById('detail-content').innerHTML = `
+
+    <!-- HERO HEADER -->
+    <div style="background:linear-gradient(135deg,#1A3A5C 0%,#2563EB 100%);border-radius:16px;padding:24px 28px;margin-bottom:18px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+      <div style="position:absolute;bottom:-40px;right:60px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
+      <div style="position:relative;z-index:1;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+          <span style="font-family:var(--mono);font-size:11px;color:#93C5FD;font-weight:700;background:rgba(255,255,255,0.12);padding:3px 10px;border-radius:6px;">${r.ref}</span>
+          <span style="font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;background:${sc}22;color:${sc};border:1px solid ${sc}44;">${r.status}</span>
+        </div>
+        <div style="font-size:22px;font-weight:800;color:#fff;margin-bottom:14px;line-height:1.3;">${r.title}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:11px;color:#BFDBFE;background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:4px;">📁 ${r.type}</span>
+          <span style="font-size:11px;color:#BFDBFE;background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:4px;">⚡ ${r.priority}</span>
+          <span style="font-size:11px;color:#BFDBFE;background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:4px;">👤 ${r.submitter}</span>
+          <span style="font-size:11px;color:#BFDBFE;background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:4px;">🏢 ${r.dept||'—'}</span>
+          <span style="font-size:11px;color:#BFDBFE;background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:4px;">📅 ${r.date}</span>
+        </div>
+      </div>
+    </div>
+
+    ${currentLevelBanner}
+
+    <!-- APPROVAL PROGRESS -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;">🔄 Approval Progress</div>
+      <div style="display:flex;align-items:center;gap:0;" id="progress-steps-${id}"></div>
+    </div>
+
+    <!-- DESCRIPTION -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">📋 Description</div>
+      <p style="font-size:14px;color:var(--text2);line-height:1.8;margin:0;background:var(--bg);padding:14px 16px;border-radius:10px;border-left:3px solid var(--blue);">${r.desc||'—'}</p>
+    </div>
+
+    <!-- COMMENT + ACTIONS -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">💬 Add Comment</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:0;">
+        <input id="new-comment-${id}" type="text" placeholder="Write a comment..." style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;"/>
+        <label for="comment-attach-${id}" title="Attach a file" style="cursor:pointer;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 12px;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.15s;flex-shrink:0;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">📎</label>
+        <input type="file" id="comment-attach-${id}" multiple style="display:none;" onchange="handleCommentAttach(${id}, this)"/>
+        <button class="comment-send" onclick="addComment(${id})">Send</button>
+      </div>
+      <div id="comment-attach-preview-${id}" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+      ${canAct ? `
+      <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+        <button onclick="openModal('Rejected',${id})" style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:7px 16px;color:#DC2626;font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px;transition:.15s;" onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='#FEF2F2'">✗ Reject</button>
+        <button onclick="openModal('Approved',${id})" style="background:#16A34A;border:none;border-radius:8px;padding:7px 18px;color:#fff;font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px;transition:.15s;" onmouseover="this.style.background='#15803D'" onmouseout="this.style.background='#16A34A'">✓ Approve</button>
+      </div>` : ''}
+    </div>
+
+    <!-- ACTIVITY & APPROVALS TIMELINE -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;">⏱ Activity & Approvals</div>
+      <div>${commentsHTML}</div>
+      ${r.docs.length ? `
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">📎 Attachments</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${r.docs.map(d=>`
+            <div onclick="showAttachmentPreview('${d.name}','${r.submitter}','${r.date}',${d.ver},'${r.ref}')" style="cursor:pointer;display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 12px;transition:.15s;" onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-dim)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg3)'">
+              <span style="font-size:20px;">${fileIcon(d.name)}</span>
+              <div>
+                <div style="font-size:12px;font-weight:600;color:var(--text);">${d.name}</div>
+                <div style="font-size:10px;color:var(--blue);">v${d.ver} · Click to view</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>` : ''}
+    </div>`;
+
+  showPage('detail', null);
+  renderProgressSteps(id, curLevel, isRej);
+}
+
+function renderProgressSteps(id, curLevel, isRej) {
+  var el = document.getElementById('progress-steps-' + id);
+  if(!el) return;
+
+  // Find where rejection happened
+  var r = MOCK_REQUESTS.find(function(x){return x.id===id;});
+  var rejStage = '';
+  if(isRej && r) {
+    var rejApproval = r.approvals.find(function(a){return a.action==='Rejected';});
+    rejStage = rejApproval ? rejApproval.stage : 'Final';
+  }
+
+  var steps = [
+    {key:'submitted', label:'Submitted',    icon:'&#x1F4DD;'},
+    {key:'l1',        label:'L1 Review',    icon:'&#x1F464;'},
+    {key:'final',     label:'Final Review', icon:'&#x1F451;'},
+    {key:'done',      label:'Approved',     icon:'&#x2705;'},
+  ];
+  var stepOrder = ['submitted','l1','final','done'];
+  var curIdx = isRej ? (rejStage==='L1'?1:2) : stepOrder.indexOf(curLevel);
+
+  var out = '';
+  steps.forEach(function(s, i) {
+    var isDone    = !isRej && i < curIdx;
+    var isCurrent = !isRej && stepOrder[curIdx] === s.key;
+
+    // Rejected: steps before rejection = green, rejection step = red, after = grey
+    var rejIdx = isRej ? curIdx : -1;
+    var isRejStep    = isRej && i === rejIdx;
+    var isBeforeRej  = isRej && i < rejIdx;
+    var isAfterRej   = isRej && i > rejIdx;
+
+    var dotBg, dotBorder, labelColor, icon;
+    if(isBeforeRej)      { dotBg='#DCFCE7'; dotBorder='#16A34A'; labelColor='#16A34A'; icon=s.icon; }
+    else if(isRejStep)   { dotBg='#FEE2E2'; dotBorder='#DC2626'; labelColor='#DC2626'; icon='&#x274C;'; }
+    else if(isAfterRej)  { dotBg='#F0F6FF'; dotBorder='#C2D9F0'; labelColor='#8AAAC8'; icon=s.icon; }
+    else if(isDone)      { dotBg='#DCFCE7'; dotBorder='#16A34A'; labelColor='#16A34A'; icon=s.icon; }
+    else if(isCurrent)   { dotBg='#DBEAFE'; dotBorder='#2563EB'; labelColor='#2563EB'; icon=s.icon; }
+    else                 { dotBg='#F0F6FF'; dotBorder='#C2D9F0'; labelColor='#8AAAC8'; icon=s.icon; }
+
+    // Override last step label if rejected
+    var label = (isRej && i === rejIdx) ? 'Rejected' : s.label;
+
+    var connectorColor = (isDone || isBeforeRej) ? '#16A34A' : (isRejStep ? '#DC2626' : '#C2D9F0');
+
+    out += '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">';
+    out += '<div style="width:42px;height:42px;border-radius:50%;background:'+dotBg+';border:2px solid '+dotBorder+';display:flex;align-items:center;justify-content:center;font-size:18px;">'+icon+'</div>';
+    out += '<div style="font-size:11px;font-weight:700;color:'+labelColor+';text-align:center;">'+label+'</div>';
+    if(isCurrent) out += '<div style="font-size:9px;background:#2563EB;color:#fff;padding:1px 7px;border-radius:4px;font-weight:800;">NOW</div>';
+    if(isRejStep) out += '<div style="font-size:9px;background:#DC2626;color:#fff;padding:1px 7px;border-radius:4px;font-weight:800;">REJECTED</div>';
+    out += '</div>';
+    if(i < steps.length - 1) {
+      out += '<div style="height:2px;background:'+connectorColor+';flex:1;margin-bottom:28px;min-width:20px;"></div>';
+    }
+  });
+  el.innerHTML = out;
+}
+
+// Stores pending comment attachments per request id
+var _commentAttachStore = {};
+
+function handleCommentAttach(id, inputEl) {
+  if(!inputEl.files || !inputEl.files.length) return;
+  if(!_commentAttachStore[id]) _commentAttachStore[id] = [];
+  Array.from(inputEl.files).forEach(function(f){
+    _commentAttachStore[id].push(f.name);
+  });
+  var preview = document.getElementById('comment-attach-preview-'+id);
+  if(!preview) return;
+  preview.innerHTML = _commentAttachStore[id].map(function(name, idx){
+    var ext = name.split('.').pop().toLowerCase();
+    var icon = ext==='pdf'?'📄':['xlsx','xls','csv'].includes(ext)?'📊':['docx','doc'].includes(ext)?'📝':['jpg','jpeg','png','gif'].includes(ext)?'🖼️':'📁';
+    return `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text2);">
+      ${icon} ${name}
+      <span onclick="removeCommentAttach(${id},${idx})" style="cursor:pointer;color:var(--red);font-weight:700;margin-left:2px;">×</span>
+    </span>`;
+  }).join('');
+}
+
+function removeCommentAttach(id, idx) {
+  if(!_commentAttachStore[id]) return;
+  _commentAttachStore[id].splice(idx, 1);
+  // Re-trigger preview render
+  var preview = document.getElementById('comment-attach-preview-'+id);
+  if(!preview) return;
+  if(!_commentAttachStore[id].length) { preview.innerHTML=''; return; }
+  preview.innerHTML = _commentAttachStore[id].map(function(name, i){
+    var ext = name.split('.').pop().toLowerCase();
+    var icon = ext==='pdf'?'📄':['xlsx','xls','csv'].includes(ext)?'📊':['docx','doc'].includes(ext)?'📝':['jpg','jpeg','png','gif'].includes(ext)?'🖼️':'📁';
+    return `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text2);">
+      ${icon} ${name}
+      <span onclick="removeCommentAttach(${id},${i})" style="cursor:pointer;color:var(--red);font-weight:700;margin-left:2px;">×</span>
+    </span>`;
+  }).join('');
+}
+
+function addComment(id) {
+  const input = document.getElementById('new-comment-'+id);
+  const attachments = _commentAttachStore[id] || [];
+  if(!input.value.trim() && !attachments.length) return;
+  const r = MOCK_REQUESTS.find(x=>x.id===id);
+  var now = new Date();
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var timeStr = months[now.getMonth()] + ' ' + now.getDate() + ', ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  var commentText = input.value;
+  var _maxSeq = Math.max(0, ...r.approvals.map(function(a){return a._seq||0;}), ...r.comments.map(function(c){return c._seq||0;}));
+  // If attachments — add them to request docs and reference in comment
+  if(attachments.length) {
+    attachments.forEach(function(fname){
+      r.docs.push({name:fname, ver:1});
+    });
+    var attNote = attachments.map(function(n){return '📎 '+n;}).join(', ');
+    commentText = commentText ? commentText + ' [' + attNote + ']' : attNote;
+  }
+  r.comments.push({user:currentUser.name, time:timeStr, text:commentText, _seq: _maxSeq + 10});
+  input.value='';
+  _commentAttachStore[id] = [];
+  var preview = document.getElementById('comment-attach-preview-'+id);
+  if(preview) preview.innerHTML = '';
+  var fileInput = document.getElementById('comment-attach-'+id);
+  if(fileInput) fileInput.value = '';
+  // WA trigger — notify requester about new comment (only if commenter is not the requester)
+  var submitterUser = MOCK_USERS.find(function(u){ return u.name === r.submitter; });
+  if(submitterUser && submitterUser.phone && currentUser.name !== r.submitter) {
+    var appLink = waAppLink();
+    sendWA(submitterUser.phone,
+      '💬 *BNRI Approval System — New Comment*\n\n' +
+      'Hi *' + submitterUser.name + '*, a new comment was added on your request.\n\n' +
+      '━━━━━━━━━━━━━━━━━━\n' +
+      '📋 Ref: *' + r.ref + '*\n' +
+      '📌 Title: *' + r.title + '*\n' +
+      '🔄 Status: *' + r.status + '*\n' +
+      '👤 Comment by: *' + currentUser.name + '*\n' +
+      '💬 *' + commentText + '*\n' +
+      '━━━━━━━━━━━━━━━━━━\n' +
+      'Please login to view and reply.' +
+      appLink);
+  }
+  showDetail(id);
+  showToast('Comment added!');
+}
+
+function openModal(action, id) {
+  currentAction = action;
+  currentDetailId = id;
+  const titles = {Approved:'Approve Request',Rejected:'Reject Request',Clarification:'Request Clarification'};
+  const colors = {Approved:'var(--green)',Rejected:'var(--red)',Clarification:'var(--purple)'};
+  document.getElementById('modal-title').textContent = titles[action];
+  document.getElementById('modal-confirm-btn').style.background = colors[action];
+  document.getElementById('modal-confirm-btn').textContent = 'Confirm ' + action;
+  document.getElementById('modal-comment').value='';
+  document.getElementById('action-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('action-modal').classList.remove('open');
+}
+
+function confirmAction() {
+  const r = MOCK_REQUESTS.find(x=>x.id===currentDetailId);
+  const comment = document.getElementById('modal-comment').value;
+  const isFinal = currentUser.role === 'final_approver';
+  let newStatus;
+  if(currentAction==='Approved') newStatus = isFinal ? 'Approved' : 'Pending Final';
+  else if(currentAction==='Rejected') newStatus = 'Rejected';
+  else newStatus = 'Needs Clarification';
+  r.status = newStatus;
+  var _an = new Date(); var _am = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var _at = _am[_an.getMonth()] + ' ' + _an.getDate() + ', ' + String(_an.getHours()).padStart(2,'0') + ':' + String(_an.getMinutes()).padStart(2,'0');
+  var _maxSeq2 = Math.max(0, ...r.approvals.map(function(a){return a._seq||0;}), ...r.comments.map(function(c){return c._seq||0;}));
+  r.approvals.push({action:currentAction, by:currentUser.name, stage:isFinal?'Final':'L1', time:_at, comment, _seq: _maxSeq2 + 10});
+  closeModal();
+  showToast('✅ Request ' + currentAction + '!');
+  // WhatsApp notifications
+  var _comment = document.getElementById('modal-comment') ? document.getElementById('modal-comment').value : '';
+  if(currentAction === 'Approved' && isFinal)  waTriggerFinalApproved(r, _comment);
+  else if(currentAction === 'Approved')         waTriggerL1Approved(r, _comment);
+  else if(currentAction === 'Rejected')         waTriggerRejected(r, _comment);
+  else if(currentAction === 'Clarification')    waTriggerClarification(r, _comment);
+  // Open the owner WhatsApp chat with a prefilled action summary
+  openOwnerActionWhatsApp(r, currentAction, _comment);
+  if(document.getElementById('page-detail').classList.contains('active')) showDetail(currentDetailId);
+  else renderRequests();
+}
+
+function selectChip(el, group) {
+  el.closest('.chip-group').querySelectorAll('.chip-select').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function submitRequest() {
+  const title = document.getElementById('req-title').value.trim();
+  if(!title){ showToast('⚠️ Title required!'); return; }
+  const type = document.querySelector('#type-chips .sel')?.textContent || 'Finance';
+  const priority = document.querySelector('#priority-chips .sel')?.textContent || 'Medium';
+  const desc = document.getElementById('req-desc').value;
+  const fileInput = document.getElementById('file-upload');
+  const files = fileInput && fileInput.files ? Array.from(fileInput.files) : [];
+  const docs = files.map(function(f){ return {name:f.name, ver:1}; });
+  const newId = MOCK_REQUESTS.length + 1;
+  const typeRoutes = {Finance:'approver_finance',IT:'approver_it',Procurement:'approver_it',Legal:'approver_legal',HR:'approver_hr'};
+  const typeRoleMap2 = {Finance:'approver_finance',IT:'approver_it',Procurement:'approver_it',Legal:'approver_legal',HR:'approver_hr'};
+  const isL1Approver    = typeRoleMap2[type] === currentUser.role;
+  const isFinalApprover = currentUser.role === 'final_approver';
+  const now = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+
+  // Final approver submits → direct Approved
+  // L1 approver submits their own type → skip L1, go Pending Final
+  // Others → normal Pending Review
+  const initStatus = isFinalApprover ? 'Approved' : isL1Approver ? 'Pending Final' : 'Pending Review';
+
+  const initApprovals = isFinalApprover ? [
+    {action:'Approved', by:currentUser.name, stage:'L1',    time:now, comment:'Auto-approved — submitted by Final Approver'},
+    {action:'Approved', by:currentUser.name, stage:'Final', time:now, comment:'Submitted and approved by Final Approver'}
+  ] : isL1Approver ? [
+    {action:'Approved', by:currentUser.name, stage:'L1', time:now, comment:'Auto-approved at L1 — submitted by L1 Approver'}
+  ] : [];
+
+  MOCK_REQUESTS.unshift({
+    id:newId, ref:'BNRI-2026-00'+String(newId).padStart(2,'0'),
+    title, type, priority, status:initStatus,
+    submitter:currentUser.name, dept:currentUser.dept||'General',
+    date:new Date().toISOString().split('T')[0],
+    desc, comments:[], approvals:initApprovals, docs:docs
+  });
+  var newReq = MOCK_REQUESTS[0];
+  document.getElementById('req-title').value='';
+  document.getElementById('req-desc').value='';
+  if(fileInput) fileInput.value='';
+  document.getElementById('file-label').textContent='No file chosen';
+  showToast('🎉 Request submitted! Ref: BNRI-2026-00'+String(newId).padStart(2,'0'));
+  // WhatsApp notification to the request intake contact
+  if(initStatus === 'Pending Review') {
+    openNewRequestWhatsApp(newReq);
+    waTriggerSubmit(newReq);
+  }
+  showPage('requests', document.querySelectorAll('.nav-item')[1]);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ── ULTRAMSG WHATSAPP INTEGRATION ──────────────────────────
+// Instance ID and Token from UltraMsg dashboard
+const WA_INSTANCE = 'instance167247';
+const WA_TOKEN    = '32jxkpioktuaqngr';
+
+function sendWA(phone, message) {
+  if(!phone) {
+    console.log('[WhatsApp] No phone number. Skipping. Message:', message);
+    return;
+  }
+  // Ensure 91 prefix
+  var to = phone.toString().startsWith('91') ? phone : '91' + phone;
+  var url = 'https://api.ultramsg.com/' + WA_INSTANCE + '/messages/chat';
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'token=' + WA_TOKEN + '&to=%2B' + to + '&body=' + encodeURIComponent(message) + '&priority=10'
+  })
+  .then(function(res){ return res.json(); })
+  .then(function(data){ console.log('[WhatsApp] Sent to', to, '→', data); })
+  .catch(function(err){ console.warn('[WhatsApp] Failed:', err); });
+}
+
+function getUserByRole(role) {
+  return MOCK_USERS.find(function(u){ return u.role === role && u.active; });
+}
+
+function getAdminUser() {
+  return MOCK_USERS.find(function(u){ return u.role === 'admin' && u.active; });
+}
+
+function getL1ApproverForType(type) {
+  var map = {Finance:'approver_finance', IT:'approver_it', Procurement:'approver_it', Legal:'approver_legal', HR:'approver_hr'};
+  return MOCK_USERS.find(function(u){ return u.role === map[type] && u.active; });
+}
+
+function getCurrentUserObj() {
+  return MOCK_USERS.find(function(u){ return u.username === currentUser.username; });
+}
+
+// ── WA HELPER: build comments/discussion summary ────────────
+function waCommentsSummary(req) {
+  if(!req.comments || !req.comments.length) return '';
+  var lines = req.comments.slice(-5).map(function(c){
+    return '   • ' + c.user + ': ' + c.text;
+  }).join('\n');
+  return '\n\n💬 *Discussion:*\n' + lines;
+}
+
+// ── WA HELPER: build approval trail summary ──────────────────
+function waApprovalTrail(req) {
+  if(!req.approvals || !req.approvals.length) return '';
+  var lines = req.approvals.map(function(a){
+    var icon = a.action==='Approved'?'✅':a.action==='Rejected'?'❌':'❓';
+    return '   ' + icon + ' ' + a.stage + ': ' + a.by + (a.comment ? ' — "' + a.comment + '"' : '');
+  }).join('\n');
+  return '\n\n📜 *Approval Trail:*\n' + lines;
+}
+
+// ── WA HELPER: app link ──────────────────────────────────────
+const NEW_REQUEST_WA_LINK = 'https://wa.me/9500329430';
+const NEW_REQUEST_WA_QR = 'https://wa.me/qr/6WXDACG23Z3RP1';
+const NEW_REQUEST_WA_NUMBER = '9500329430';
+
+const OWNER_WA_LINK = 'https://wa.me/9150459992';
+const OWNER_WA_MESSAGE_LINK = 'https://wa.me/message/KDRAPEQYUHEBB1';
+const OWNER_WA_NUMBER = '9150459992';
+
+function openWhatsAppChat() {
+  window.open(OWNER_WA_MESSAGE_LINK, '_blank', 'noopener,noreferrer');
+}
+
+function waAppLink() {
+  return '\n\n🔗 *Owner WhatsApp:* ' + OWNER_WA_MESSAGE_LINK + '\n📞 *Business Number:* ' + OWNER_WA_NUMBER;
+}
+
+function waDocSummary(req) {
+  if(!req.docs || !req.docs.length) return '\n📎 *Attachments:* None';
+  return '\n📎 *Attachments:*\n' + req.docs.map(function(d){
+    return '   • ' + d.name + ' (v' + d.ver + ')';
+  }).join('\n');
+}
+
+function openWACompose(baseLink, message) {
+  window.open(baseLink + '?text=' + encodeURIComponent(message), '_blank', 'noopener,noreferrer');
+}
+
+function buildNewRequestWAMessage(req) {
+  return (
+    '📌 *BNRI Approval System — New Request*\n\n' +
+    'Ref: *' + req.ref + '*\n' +
+    'Title: *' + req.title + '*\n' +
+    'Type: *' + req.type + '*\n' +
+    'Priority: *' + req.priority + '*\n\n' +
+    '*Description:*\n' + (req.desc || '-') +
+    waDocSummary(req) +
+    '\n\nPlease review this request.'
+  );
+}
+
+function buildOwnerActionWAMessage(req, action, comment) {
+  return (
+    '📌 *BNRI Approval System — Approval Needed*\n\n' +
+    'Ref: *' + req.ref + '*\n' +
+    'Title: *' + req.title + '*\n' +
+    'Type: *' + req.type + '*\n' +
+    'Priority: *' + req.priority + '*\n' +
+    'Suggested Action: *' + String(action || '').toUpperCase() + '*\n\n' +
+    '*Description:*\n' + (req.desc || '-') +
+    waDocSummary(req) +
+    (comment ? '\n\n*Comment:* ' + comment : '') +
+    '\n\nChoose one reply:\n✅ APPROVE\n❌ REJECT\n❓ CLARIFICATION'
+  );
+}
+
+function openNewRequestWhatsApp(req) {
+  openWACompose(NEW_REQUEST_WA_LINK, buildNewRequestWAMessage(req));
+}
+
+function openOwnerActionWhatsApp(req, action, comment) {
+  openWACompose(OWNER_WA_LINK, buildOwnerActionWAMessage(req, action, comment));
+}
+
+// Trigger 1: Request submitted
+function waTriggerSubmit(req) {
+  var submitter  = getCurrentUserObj();
+  var l1Approver = getL1ApproverForType(req.type);
+  var admin      = getAdminUser();
+  var descLine   = req.desc ? '\n📝 *Description:*\n   ' + req.desc : '';
+  var docsLine   = req.docs && req.docs.length ? '\n📎 *Attachments:*\n   ' + req.docs.map(function(d){ return '• ' + d.name; }).join('\n   ') : '\n📎 *Attachments:* None';
+  var appLink    = waAppLink();
+
+  if(submitter && submitter.phone) {
+    sendWA(submitter.phone,
+      '✅ *BNRI Approval System*\n\n' +
+      'Hi *' + submitter.name + '*, your request has been submitted!\n\n' +
+      '━━━━━━━━━━━━━━━━━━\n' +
+      '📋 Ref: *' + req.ref + '*\n' +
+      '📌 Title: *' + req.title + '*\n' +
+      '🏷️ Type: ' + req.type + '  |  ⚡ Priority: ' + req.priority + '\n' +
+      '🔄 Status: *Pending Review*' +
+      descLine + docsLine +
+      '\n━━━━━━━━━━━━━━━━━━' +
+      appLink);
+  }
+  if(l1Approver && l1Approver.phone) {
+    sendWA(l1Approver.phone,
+      '🔔 *BNRI Approval System — Action Required*\n\n' +
+      'Hi *' + l1Approver.name + '*, a new request needs your *L1 approval*!\n\n' +
+      '━━━━━━━━━━━━━━━━━━\n' +
+      '📋 Ref: *' + req.ref + '*\n' +
+      '📌 Title: *' + req.title + '*\n' +
+      '🏷️ Type: ' + req.type + '  |  ⚡ Priority: ' + req.priority + '\n' +
+      '👤 Submitted by: ' + req.submitter + '\n' +
+      '📅 Date: ' + req.date +
+      descLine + docsLine +
+      '\n━━━━━━━━━━━━━━━━━━\n' +
+      'Please login to review and approve.' +
+      appLink);
+  }
+  if(admin && admin.phone) {
+    sendWA(admin.phone,
+      '📊 *BNRI Admin Alert — New Request*\n\n' +
+      '📋 Ref: ' + req.ref + '\n' +
+      '📌 ' + req.title + '\n' +
+      '🏷️ ' + req.type + ' | ⚡ ' + req.priority + '\n' +
+      '👤 By: ' + req.submitter +
+      descLine + docsLine +
+      appLink);
+  }
+}
+
+// Trigger 2: L1 Approved
+function waTriggerL1Approved(req, comment) {
+  var submitterUser = MOCK_USERS.find(function(u){ return u.name === req.submitter; });
+  var finalApprover = getUserByRole('final_approver');
+  var admin         = getAdminUser();
+  var descLine      = req.desc ? '\n📝 *Description:*\n   ' + req.desc : '';
+  var discussion    = waCommentsSummary(req);
+  var trail         = waApprovalTrail(req);
+  var appLink       = waAppLink();
+
+  if(submitterUser && submitterUser.phone) {
+    sendWA(submitterUser.phone,
+      '👍 *BNRI Approval System*\n\n' +
+      'Hi *' + submitterUser.name + '*, your request passed *L1 Review*!\n\n' +
+      '━━━━━━━━━━━━━━━━━━\n' +
+      '📋 Ref: *' + req.ref + '*\n' +
+      '📌 Title: *' + req.title + '*\n' +
+      '🔄 Status: *Pending Final Approval*\n' +
+      (comment ? '💬 L1 Note: ' + comment : '') +
+      descLine + trail + discussion +
+      '\n━━━━━━━━━━━━━━━━━━' +
+      appLink);
+  }
+  if(finalApprover && finalApprover.phone) {
+    sendWA(finalApprover.phone,
+      '👑 *BNRI Approval System — Final Approval Needed*\n\n' +
+      'Hi *' + finalApprover.name + '*, a request needs your *Final Approval*!\n\n' +
+      '━━━━━━━━━━━━━━━━━━\n' +
+      '📋 Ref: *' + req.ref + '*\n' +
+      '📌 Title: *' + req.title + '*\n' +
+      '🏷️ Type: ' + req.type + '  |  ⚡ Priority: ' + req.priority + '\n' +
+      '👤 Submitted by: ' + req.submitter + '\n' +
+      '✅ L1 approved by: ' + currentUser.name +
+      (comment ? '\n💬 L1 Note: ' + comment : '') +
+      descLine + trail + discussion +
+      '\n━━━━━━━━━━━━━━━━━━\n' +
+      'Please login to give final approval.' +
+      appLink);
+  }
+  if(admin && admin.phone) {
+    sendWA(admin.phone,
+      '📊 *BNRI Admin* — L1 ✅ → Pending Final\n' +
+      'Ref: ' + req.ref + ' | By: ' + currentUser.name +
+      appLink);
+  }
+}
+
+// Trigger 3: Final Approved
+function waTriggerFinalApproved(req, comment) {
+  var submitterUser = MOCK_USERS.find(function(u){ return u.name === req.submitter; });
+  var admin         = getAdminUser();
+  var descLine      = req.desc ? '\n📝 *Description:*\n   ' + req.desc : '';
+  var discussion    = waCommentsSummary(req);
+  var trail         = waApprovalTrail(req);
+  var appLink       = waAppLink();
+
+  if(submitterUser && submitterUser.phone) {
+    sendWA(submitterUser.phone,
+      '🎉 *BNRI Approval System*\n\n' +
+      'Congratulations *' + submitterUser.name + '*!\n' +
+      'Your request has been *FULLY APPROVED*! ✅\n\n' +
+      '━━━━━━━━━━━━━━━━━━\n' +
+      '📋 Ref: *' + req.ref + '*\n' +
+      '📌 Title: *' + req.title + '*\n' +
+      '✅ Final approved by: ' + currentUser.name + '\n' +
+      (comment ? '💬 Note: ' + comment : '') +
+      descLine + trail + discussion +
+      '\n━━━━━━━━━━━━━━━━━━' +
+      appLink);
+  }
+  if(admin && admin.phone) {
+    sendWA(admin.phone,
+      '📊 *BNRI Admin* — ✅ FINAL APPROVED\n' +
+      'Ref: ' + req.ref + ' | By: ' + currentUser.name + '\n' +
+      'Title: ' + req.title +
+      appLink);
+  }
+}
+
+// Trigger 4: Rejected
+function waTriggerRejected(req, comment) {
+  var submitterUser = MOCK_USERS.find(function(u){ return u.name === req.submitter; });
+  var admin         = getAdminUser();
+  var stage         = currentUser.role === 'final_approver' ? 'Final' : 'L1';
+  var descLine      = req.desc ? '\n📝 *Description:*\n   ' + req.desc : '';
+  var discussion    = waCommentsSummary(req);
+  var trail         = waApprovalTrail(req);
+  var appLink       = waAppLink();
+
+  if(submitterUser && submitterUser.phone) {
+    sendWA(submitterUser.phone,
+      '❌ *BNRI Approval System*\n\n' +
+      'Hi *' + submitterUser.name + '*, your request has been *REJECTED*.\n\n' +
+      '━━━━━━━━━━━━━━━━━━\n' +
+      '📋 Ref: *' + req.ref + '*\n' +
+      '📌 Title: *' + req.title + '*\n' +
+      '👤 Rejected by: ' + currentUser.name + ' (' + stage + ' Level)\n' +
+      (comment ? '💬 Reason: *' + comment + '*' : '') +
+      descLine + trail + discussion +
+      '\n━━━━━━━━━━━━━━━━━━\n' +
+      'Please contact your approver for details.' +
+      appLink);
+  }
+  if(admin && admin.phone) {
+    sendWA(admin.phone,
+      '📊 *BNRI Admin* — ❌ REJECTED (' + stage + ')\n' +
+      'Ref: ' + req.ref + ' | By: ' + currentUser.name +
+      appLink);
+  }
+}
+
+// Trigger 5: Clarification
+function waTriggerClarification(req, comment) {
+  var submitterUser = MOCK_USERS.find(function(u){ return u.name === req.submitter; });
+  var descLine      = req.desc ? '\n📝 *Description:*\n   ' + req.desc : '';
+  var discussion    = waCommentsSummary(req);
+  var appLink       = waAppLink();
+
+  if(submitterUser && submitterUser.phone) {
+    sendWA(submitterUser.phone,
+      '❓ *BNRI Approval System — Clarification Needed*\n\n' +
+      'Hi *' + submitterUser.name + '*, your request needs *clarification*.\n\n' +
+      '━━━━━━━━━━━━━━━━━━\n' +
+      '📋 Ref: *' + req.ref + '*\n' +
+      '📌 Title: *' + req.title + '*\n' +
+      '👤 Requested by: ' + currentUser.name + '\n' +
+      (comment ? '💬 *Please clarify:* ' + comment : '') +
+      descLine + discussion +
+      '\n━━━━━━━━━━━━━━━━━━\n' +
+      'Please login and reply in the Discussion section.' +
+      appLink);
+  }
+}
+
+
+document.getElementById('action-modal').addEventListener('click', function(e){
+  if(e.target===this) closeModal();
+});
+
+let _confirmCallback = null;
+
+function showConfirm(title, msg, color, callback, btnText) {
+  _confirmCallback = callback;
+  document.getElementById('confirm-title').innerHTML = title;
+  document.getElementById('confirm-msg').innerHTML   = msg;
+  document.getElementById('confirm-ok-btn').style.background = color || '#EF4444';
+  document.getElementById('confirm-ok-btn').textContent = btnText || 'Delete';
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function closeConfirm() {
+  _confirmCallback = null;
+  document.getElementById('confirm-modal').classList.remove('open');
+}
+function executeConfirm() {
+  if(_confirmCallback) _confirmCallback();
+  closeConfirm();
+}
+document.getElementById('confirm-modal').addEventListener('click', function(e){
+  if(e.target===this) closeConfirm();
+});
+
+// ── ADMIN DATA ────────────────────────────────────────────────
+let MOCK_USERS = [
+  {id:1, name:'Admin', username:'admin', password:'admin123', role:'admin', dept:'Management', active:true, mustChangePwd:false, phone:'', wapiKey:''},
+];
+
+const ROLE_LABELS = {
+  requester:'Requester',
+  approver_finance:'Finance Approver',
+  approver_it:'IT Approver',
+  approver_legal:'Legal Approver',
+  approver_hr:'HR Approver',
+  final_approver:'Final Approver',
+  admin:'Admin'
+};
+const ROLE_COLORS = {
+  requester:       ['#DBEAFE','#2563EB'],
+  approver_finance:['#DCFCE7','#16A34A'],
+  approver_it:     ['#EDE9FE','#7C3AED'],
+  approver_legal:  ['#FEF3C7','#D97706'],
+  approver_hr:     ['#FFE4E6','#E11D48'],
+  final_approver:  ['#CCFBF1','#0D9488'],
+  admin:           ['#FEE2E2','#DC2626']
+};
+
+let adminReqStatusFilter = 'All';
+
+function adminLogout() {
+  document.getElementById('admin-shell').classList.remove('active');
+  document.getElementById('login-screen').classList.add('active');
+  document.getElementById('login-user').value='';
+  document.getElementById('login-pass').value='';
+  document.getElementById('login-error').style.display='none';
+  document.getElementById('login-step1').style.display='block';
+  document.getElementById('login-step2-requester').style.display='none';
+  document.getElementById('login-step2-staff').style.display='none';
+}
+
+function adminPage(page, el) {
+  document.querySelectorAll('.admin-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.admin-nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('admin-page-'+page).classList.add('active');
+  if(el) el.classList.add('active');
+  if(page==='users')    renderAdminUsers();
+  if(page==='requests') renderAdminRequests();
+  if(page==='overview') renderAdminOverview();
+}
+
+function renderAdminOverview() {
+  const total    = MOCK_REQUESTS.length;
+  const pending  = MOCK_REQUESTS.filter(r=>!['Approved','Rejected'].includes(r.status)).length;
+  const approved = MOCK_REQUESTS.filter(r=>r.status==='Approved').length;
+  const rejected = MOCK_REQUESTS.filter(r=>r.status==='Rejected').length;
+  document.getElementById('adm-total').textContent    = total;
+  document.getElementById('adm-pending').textContent  = pending;
+  document.getElementById('adm-approved').textContent = approved;
+  document.getElementById('adm-rejected').textContent = rejected;
+  document.getElementById('adm-users').textContent    = MOCK_USERS.filter(u=>u.active&&u.role!=='admin').length;
+
+  // Dept bars
+  const depts = {};
+  MOCK_REQUESTS.forEach(r=>{ depts[r.type]=(depts[r.type]||0)+1; });
+  const maxD = Math.max(...Object.values(depts));
+  const TYPE_COL = {Finance:'#3B82F6',IT:'#A78BFA',Procurement:'#2DD4BF',Legal:'#F59E0B',HR:'#EF4444'};
+  document.getElementById('dept-bars').innerHTML = Object.entries(depts).map(([k,v])=>`
+    <div class="dept-row">
+      <span class="dept-label">${k}</span>
+      <div class="dept-bar-track"><div class="dept-bar-fill" style="width:${Math.round(v/maxD*100)}%;background:${TYPE_COL[k]||'#3B82F6'}"></div></div>
+      <span class="dept-count">${v}</span>
+    </div>`).join('');
+
+  // Status list
+  const statuses = {};
+  MOCK_REQUESTS.forEach(r=>{ statuses[r.status]=(statuses[r.status]||0)+1; });
+  const STATUS_C = {'Pending Review':'#F59E0B','Under Review':'#3B82F6','Needs Clarification':'#A78BFA',
+    'Approved L1':'#2DD4BF','Pending Final':'#2DD4BF','Approved':'#22C55E','Rejected':'#EF4444'};
+  document.getElementById('overview-status-list').innerHTML = Object.entries(statuses).map(([k,v])=>`
+    <div class="status-item">
+      <span class="status-name"><span class="status-dot" style="background:${STATUS_C[k]||'#888'}"></span>${k}</span>
+      <span class="status-count" style="color:${STATUS_C[k]||'#888'}">${v}</span>
+    </div>`).join('');
+}
+
+function userHasFinalApproval(userName) {
+  return MOCK_REQUESTS.some(r =>
+    r.status === 'Approved' &&
+    r.approvals.some(a => a.stage === 'Final' && a.action === 'Approved' && a.by === userName)
+  );
+}
+
+function renderAdminUsers() {
+  const body = document.getElementById('admin-users-body');
+  const adminCount = MOCK_USERS.filter(u => u.role === 'admin').length;
+
+  body.innerHTML = MOCK_USERS.map((u,i)=>{
+    const [bg,fg] = ROLE_COLORS[u.role]||['#1A2540','#C8D8F0'];
+    const isSelf  = u.role === 'admin' && u.username === 'admin';
+    const isLastAdmin = u.role === 'admin' && adminCount === 1;
+
+    let actionCell;
+    if(isSelf) {
+      actionCell = '<span style="font-size:11px;color:#3D5070;">Self</span>';
+    } else if(isLastAdmin) {
+      actionCell = '<span style="font-size:11px;color:#DC2626;background:#FEE2E2;padding:4px 8px;border-radius:6px;font-weight:700;cursor:not-allowed;">🔒 Last Admin</span>';
+    } else if(u.active) {
+      actionCell = `<button onclick="editWAKey(${u.id})" style="background:#F0FDF4;border:1px solid #86EFAC;color:#15803D;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);margin-right:4px;">📱 WA Key</button><button onclick="toggleUserStatus(${u.id})" style="background:#FEF3C7;border:1px solid #D97706;color:#92400E;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);">⏸ Deactivate</button>`;
+    } else {
+      actionCell = `<button onclick="editWAKey(${u.id})" style="background:#F0FDF4;border:1px solid #86EFAC;color:#15803D;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);margin-right:4px;">📱 WA Key</button><button onclick="toggleUserStatus(${u.id})" style="background:#DCFCE7;border:1px solid #16A34A;color:#14532D;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);">▶ Activate</button>`;
+    }
+
+    return `<div class="admin-table-row" style="${!u.active?'opacity:0.6;':''}">
+      <div style="font-size:11px;color:#8AAAC8;font-family:'JetBrains Mono',monospace">${i+1}</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#1A2E4A;">${u.name}</div>
+        <div style="font-size:10px;color:#8AAAC8;margin-top:2px;">🏢 ${u.dept||'—'}</div>
+      </div>
+      <div style="font-size:12px;color:#4A6A8A">${u.email||u.username||''}</div>
+      <div><span class="role-pill" style="background:${bg};color:${fg}">${ROLE_LABELS[u.role]||u.role}</span></div>
+      <div>
+        <span style="font-size:10px;font-weight:700;color:${u.active?'#16A34A':'#DC2626'};background:${u.active?'#DCFCE7':'#FEE2E2'};padding:3px 8px;border-radius:8px">${u.active?'Active':'Inactive'}</span>
+        ${u.mustChangePwd?' <span style="font-size:9px;color:#D97706;background:#FEF3C7;padding:2px 6px;border-radius:6px;font-weight:700">First Login</span>':''}
+      </div>
+      <div>${actionCell}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleUserStatus(id) {
+  const u = MOCK_USERS.find(x=>x.id===id);
+  if(!u) return;
+  const action = u.active ? 'Deactivate' : 'Activate';
+  const color  = u.active ? '#D97706' : '#16A34A';
+  showConfirm(
+    (u.active ? '⏸ Deactivate' : '▶ Activate') + ' User',
+    (u.active
+      ? 'Deactivate <strong>'+u.name+'</strong>?<br><span style="font-size:12px;color:#D97706">User will not be able to login until reactivated.</span>'
+      : 'Activate <strong>'+u.name+'</strong>?<br><span style="font-size:12px;color:#16A34A">User will be able to login again.</span>'),
+    color,
+    function() {
+      u.active = !u.active;
+      renderAdminUsers();
+      renderAdminOverview();
+      showToast((u.active ? '✅ ' : '⏸ ') + u.name + ' ' + (u.active ? 'activated' : 'deactivated') + ' successfully');
+    },
+    u.active ? '⏸ Deactivate' : '▶ Activate'
+  );
+}
+
+function openAddUser() {
+  ['new-user-name','new-user-mobile','new-user-email','new-user-dept','new-user-pwd','new-user-pwd2','new-user-wakey'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.value='';
+  });
+  var err=document.getElementById('add-user-error'); if(err) err.style.display='none';
+  document.getElementById('add-user-modal').classList.add('open');
+}
+
+function editWAKey(userId) {
+  var u = MOCK_USERS.find(function(x){ return x.id === userId; });
+  if(!u) return;
+  var key = prompt(
+    'Edit WhatsApp API Key for ' + u.name + '\n\n' +
+    'Current key: ' + (u.wapiKey || '(not set)') + '\n' +
+    'Phone: ' + (u.phone || '(not set)') + '\n\n' +
+    'Enter new API key (leave blank to clear):'
+  );
+  if(key === null) return; // cancelled
+  u.wapiKey = key.trim();
+  if(u.wapiKey) {
+    showToast('✅ WA Key updated for ' + u.name);
+  } else {
+    showToast('⚠️ WA Key cleared for ' + u.name + ' — notifications paused');
+  }
+  renderAdminUsers();
+}
+
+
+
+
+function closeAddUser() {
+  document.getElementById('add-user-modal').classList.remove('open');
+}
+function confirmAddUser() {
+  var errEl  = document.getElementById('add-user-error');
+  var name   = document.getElementById('new-user-name').value.trim();
+  var mobile = document.getElementById('new-user-mobile').value.trim();
+  var email  = document.getElementById('new-user-email').value.trim();
+  var role   = document.getElementById('new-user-role').value;
+  var dept   = document.getElementById('new-user-dept').value.trim();
+  var pwd    = document.getElementById('new-user-pwd').value.trim();
+  var pwd2   = document.getElementById('new-user-pwd2').value.trim();
+
+  if(!name)                     { errEl.textContent='Full Name required!'; errEl.style.display='block'; return; }
+  if(!mobile||mobile.length<10) { errEl.textContent='Valid Mobile Number required!'; errEl.style.display='block'; return; }
+  if(!email)                    { errEl.textContent='Mail ID required!'; errEl.style.display='block'; return; }
+  if(!dept)                     { errEl.textContent='Department required!'; errEl.style.display='block'; return; }
+  if(pwd.length<6)              { errEl.textContent='Password min 6 characters!'; errEl.style.display='block'; return; }
+  if(pwd !== pwd2)              { errEl.textContent='Passwords do not match!'; errEl.style.display='block'; return; }
+  if(MOCK_USERS.find(function(u){return u.username===mobile;})) { errEl.textContent='Mobile number already registered!'; errEl.style.display='block'; return; }
+
+  errEl.style.display = 'none';
+  var wapiKey = (document.getElementById('new-user-wakey') ? document.getElementById('new-user-wakey').value.trim() : '');
+  var phone91 = mobile.startsWith('91') ? mobile : '91' + mobile;
+  var newId = Math.max.apply(null, MOCK_USERS.map(function(u){return u.id;})) + 1;
+  MOCK_USERS.push({id:newId, name:name, username:mobile, email:email, password:pwd, role:role, dept:dept, active:true, mustChangePwd:false, phone:phone91, wapiKey:wapiKey});
+  closeAddUser();
+  renderAdminUsers();
+  renderAdminOverview();
+  showToast('&#x2705; ' + name + ' added successfully!');
+}
+
+
+function adminReqFilter(status, el) {
+  adminReqStatusFilter = status;
+  document.querySelectorAll('#admin-req-filters .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderAdminRequests();
+}
+
+function renderAdminRequests() {
+  const body   = document.getElementById('admin-req-body');
+  const search = document.getElementById('admin-req-search')?.value.toLowerCase()||'';
+  let reqs = MOCK_REQUESTS;
+  if(adminReqStatusFilter!=='All') reqs = reqs.filter(r=>r.status===adminReqStatusFilter);
+  if(search) reqs = reqs.filter(r=>r.title.toLowerCase().includes(search)||r.ref.toLowerCase().includes(search)||r.submitter.toLowerCase().includes(search));
+
+  const STATUS_C = {'Pending Review':'#F59E0B','Under Review':'#3B82F6','Needs Clarification':'#A78BFA',
+    'Approved L1':'#2DD4BF','Pending Final':'#2DD4BF','Approved':'#22C55E','Rejected':'#EF4444'};
+  const TYPE_C = {Finance:'#3B82F6',IT:'#A78BFA',Procurement:'#2DD4BF',Legal:'#F59E0B',HR:'#EF4444'};
+
+  body.innerHTML = reqs.map((r,i)=>{
+    const sc = STATUS_C[r.status]||'#888';
+    const tc = TYPE_C[r.type]||'#888';
+    return `<div class="admin-req-grid admin-req-row" onclick="adminOpenRequest(${r.id})">
+      <div style="font-size:11px;color:#8AAAC8;font-family:'JetBrains Mono',monospace">${i+1}</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#1A2E4A">${r.title}</div>
+        <div style="font-size:10px;color:#8AAAC8;font-family:'JetBrains Mono',monospace">${r.ref}</div>
+      </div>
+      <div><span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;background:${tc}22;color:${tc}">${r.type}</span></div>
+      <div><span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;background:#E6F0FB;color:#4A6A8A">${r.priority}</span></div>
+      <div><span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;background:${sc}22;color:${sc}">${r.status}</span></div>
+      <div style="font-size:12px;color:#4A6A8A">${r.submitter}</div>
+      <div onclick="event.stopPropagation()">
+        ${r.status === 'Approved'
+          ? `<span title="Final approval complete — cannot delete" style="font-size:11px;color:#16A34A;background:#DCFCE7;padding:4px 8px;border-radius:6px;font-weight:700;display:inline-flex;align-items:center;gap:4px;cursor:not-allowed;">&#x1F512; Locked</span>`
+          : `<button class="del-btn" onclick="adminDeleteRequest(${r.id})">&#x1F5D1;</button>`
+        }
+      </div>
+    </div>`;
+  }).join('') || '<div style="padding:28px;text-align:center;color:#3D5070;font-size:13px">No requests found</div>';
+}
+
+function adminDeleteRequest(id) {
+  const r = MOCK_REQUESTS.find(x=>x.id===id);
+  if(!r) return;
+  if(r.status === 'Approved') {
+    showToast('&#x1F512; Cannot delete — Final approval completed!'); return;
+  }
+  showConfirm(
+    '&#x1F5D1; Delete Request',
+    'Delete <strong>' + r.ref + '</strong>?<br><span style="font-size:12px;color:#7A90B8">' + r.title + '</span><br><span style="font-size:12px;color:#EF4444">This cannot be undone.</span>',
+    '#EF4444',
+    function() {
+      const idx = MOCK_REQUESTS.findIndex(x=>x.id===id);
+      MOCK_REQUESTS.splice(idx,1);
+      renderAdminRequests();
+      renderAdminOverview();
+      showToast('&#x1F5D1; Request ' + r.ref + ' deleted');
+    }
+  );
+}
+
+function adminOpenRequest(id) {
+  // Switch to normal app view to show detail
+  document.getElementById('admin-shell').classList.remove('active');
+  document.getElementById('app-shell').classList.add('active');
+  currentUser = {name:'Admin', role:'admin', email:'admin@BNRIinfra.com'};
+  showDetail(id);
+  // Override back button to go back to admin
+  document.querySelector('.detail-back').setAttribute('onclick', 'backToAdmin()');
+}
+
+function backToAdmin() {
+  document.getElementById('app-shell').classList.remove('active');
+  document.getElementById('admin-shell').classList.add('active');
+  adminPage('requests', document.querySelectorAll('.admin-nav-item')[1]);
+}
+
+document.getElementById('add-user-modal').addEventListener('click', function(e){
+  if(e.target===this) closeAddUser();
+});
+
+// ── Login flow helpers ──────────────────────────────────────
+var _loginType = 'staff'; // 'requester' or 'staff'
+
+window._BNRISelectType = function(type) {
+  _loginType = type;
+  document.getElementById('login-step1').style.display = 'none';
+  document.getElementById('login-step2-requester').style.display = type==='requester' ? 'block' : 'none';
+  document.getElementById('login-step2-staff').style.display     = type==='staff'     ? 'block' : 'none';
+};
+
+window._BNRIBackStep = function() {
+  document.getElementById('login-step1').style.display = 'block';
+  document.getElementById('login-step2-requester').style.display = 'none';
+  document.getElementById('login-step2-staff').style.display     = 'none';
+};
+
+window._BNRIReqTab = function(tab) {
+  var isSignin = tab === 'signin';
+  document.getElementById('req-signin-form').style.display   = isSignin ? 'block' : 'none';
+  document.getElementById('req-register-form').style.display = isSignin ? 'none'  : 'block';
+  document.getElementById('tab-signin').style.background   = isSignin ? '#2563EB' : '#F0F6FF';
+  document.getElementById('tab-signin').style.color        = isSignin ? '#fff'    : '#4A6A8A';
+  document.getElementById('tab-signin').style.border       = isSignin ? 'none'    : '1px solid #C2D9F0';
+  document.getElementById('tab-register').style.background = isSignin ? '#F0F6FF' : '#2563EB';
+  document.getElementById('tab-register').style.color      = isSignin ? '#4A6A8A' : '#fff';
+  document.getElementById('tab-register').style.border     = isSignin ? '1px solid #C2D9F0' : 'none';
+};
+
+window._BNRIRegister = function() {
+  var name  = (document.getElementById('reg-name').value||'').trim();
+  var uname = (document.getElementById('reg-user').value||'').trim().toLowerCase();
+  var dept  = document.getElementById('reg-dept').value;
+  var pwd   = (document.getElementById('reg-pass').value||'').trim();
+  var pwd2  = (document.getElementById('reg-pass2').value||'').trim();
+  var err   = document.getElementById('reg-error');
+  if(!name)          { err.textContent='Full name required'; err.style.display='block'; return; }
+  if(!uname)         { err.textContent='Mobile number required'; err.style.display='block'; return; }
+  if(MOCK_USERS.find(function(u){return u.username===uname;})) { err.textContent='Mobile number already registered!'; err.style.display='block'; return; }
+  if(pwd.length < 6) { err.textContent='Password min 6 characters'; err.style.display='block'; return; }
+  if(pwd !== pwd2)   { err.textContent='Passwords do not match'; err.style.display='block'; return; }
+  var newId = Math.max.apply(null, MOCK_USERS.map(function(u){return u.id;})) + 1;
+  var phone91 = uname.startsWith('91') ? uname : '91' + uname;
+  MOCK_USERS.push({id:newId, name:name, username:uname, password:pwd, role:'requester', dept:dept, active:true, mustChangePwd:false, phone:phone91, wapiKey:''});
+  err.style.display = 'none';
+  currentUser = {name:name, role:'requester', username:uname, dept:dept};
+  showToast('Account created! Welcome, ' + name.split(' ')[0] + '!');
+  launchApp();
+};
+
+// ── EXPORT ──────────────────────────────────────────────────
+function getFilteredRequests() {
+  var typeMap = {approver_finance:'Finance', approver_it:'IT', approver_legal:'Legal', approver_hr:'HR'};
+  var reqs = MOCK_REQUESTS;
+  if(currentUser.role === 'final_approver' || currentUser.role === 'admin') return reqs;
+  if(typeMap[currentUser.role]) return reqs.filter(function(r){ return r.type === typeMap[currentUser.role]; });
+  if(currentUser.role === 'requester') {
+    var d = currentUser.dept||'';
+    return d ? reqs.filter(function(r){ return r.dept===d || r.submitter===currentUser.name; })
+             : reqs.filter(function(r){ return r.submitter===currentUser.name; });
+  }
+  return reqs;
+}
+
+// ── ATTACHMENT PREVIEW ──────────────────────────────────────
+var _currentAtt = {};
+
+function showAttachmentPreview(name, uploader, date, ver, ref) {
+  var ext = name.split('.').pop().toLowerCase();
+  var iconMap = {pdf:'📄', xlsx:'📊', xls:'📊', csv:'📊', docx:'📝', doc:'📝', jpg:'🖼️', jpeg:'🖼️', png:'🖼️'};
+  var typeMap = {pdf:'PDF Document', xlsx:'Excel Spreadsheet', xls:'Excel Spreadsheet', csv:'CSV File', docx:'Word Document', doc:'Word Document', jpg:'Image File', jpeg:'Image File', png:'Image File'};
+  _currentAtt = {name:name, ext:ext, uploader:uploader, date:date, ver:ver, ref:ref};
+  document.getElementById('att-icon').textContent = iconMap[ext] || '📁';
+  document.getElementById('att-name').textContent = name;
+  document.getElementById('att-type').textContent = typeMap[ext] || ext.toUpperCase() + ' File';
+  document.getElementById('att-uploader').textContent = uploader;
+  document.getElementById('att-date').textContent = date;
+  document.getElementById('att-ver').textContent = 'Version ' + ver;
+  document.getElementById('att-ref').textContent = ref;
+  document.getElementById('attachment-modal').classList.add('open');
+}
+
+function viewAttachment() {
+  var a = _currentAtt;
+  var bodyContent = '';
+  if(['pdf','docx','doc'].includes(a.ext)) {
+    bodyContent =
+      '<div style="background:#fff;border-radius:8px;padding:32px;max-width:620px;margin:20px auto;box-shadow:0 2px 12px #0002;">' +
+      '<div style="font-size:11px;color:#8AAAC8;font-family:monospace;margin-bottom:12px;">' + a.ref + ' &nbsp;|&nbsp; Version ' + a.ver + '</div>' +
+      '<h2 style="font-size:19px;color:#1A2E4A;margin-bottom:6px;">' + a.name + '</h2>' +
+      '<p style="font-size:12px;color:#4A6A8A;margin-bottom:24px;">Uploaded by <strong>' + a.uploader + '</strong> &nbsp;•&nbsp; ' + a.date + '</p>' +
+      '<div style="border-top:1px solid #E2EAF3;padding-top:20px;">' +
+      '<p style="font-size:14px;color:#1A2E4A;line-height:1.8;">This is a document preview of <strong>' + a.name + '</strong>.</p>' +
+      '<p style="font-size:14px;color:#4A6A8A;line-height:1.8;margin-top:10px;">In the live system, the actual file content will appear here. This document was submitted as part of request <strong>' + a.ref + '</strong>.</p>' +
+      '<div style="margin-top:20px;padding:14px;background:#F0F6FF;border-radius:8px;border-left:4px solid #2563EB;">' +
+      '<p style="font-size:12px;color:#2563EB;margin:0;">📋 ' + a.name + ' &nbsp;|&nbsp; v' + a.ver + ' &nbsp;|&nbsp; ' + a.date + '</p></div></div></div>';
+  } else if(['xlsx','xls','csv'].includes(a.ext)) {
+    bodyContent =
+      '<div style="background:#fff;border-radius:8px;padding:24px;max-width:700px;margin:20px auto;box-shadow:0 2px 12px #0002;">' +
+      '<h2 style="font-size:17px;color:#1A2E4A;margin-bottom:4px;">' + a.name + '</h2>' +
+      '<p style="font-size:12px;color:#4A6A8A;margin-bottom:16px;">Uploaded by ' + a.uploader + ' &nbsp;•&nbsp; ' + a.date + '</p>' +
+      '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
+      '<thead><tr style="background:#1A3A5C;color:#fff;">' +
+      '<th style="padding:8px 12px;text-align:left;">Description</th><th style="padding:8px 12px;text-align:left;">Amount</th><th style="padding:8px 12px;text-align:left;">Period</th><th style="padding:8px 12px;text-align:left;">Status</th>' +
+      '</tr></thead><tbody>' +
+      '<tr style="background:#F0F6FF;"><td style="padding:8px 12px;border-bottom:1px solid #E2EAF3;">Item 1</td><td style="padding:8px 12px;border-bottom:1px solid #E2EAF3;">₹1,20,000</td><td style="padding:8px 12px;border-bottom:1px solid #E2EAF3;">Q2 2026</td><td style="padding:8px 12px;border-bottom:1px solid #E2EAF3;color:#16A34A;font-weight:700;">Approved</td></tr>' +
+      '<tr><td style="padding:8px 12px;border-bottom:1px solid #E2EAF3;">Item 2</td><td style="padding:8px 12px;border-bottom:1px solid #E2EAF3;">₹80,000</td><td style="padding:8px 12px;border-bottom:1px solid #E2EAF3;">Q2 2026</td><td style="padding:8px 12px;border-bottom:1px solid #E2EAF3;color:#D97706;font-weight:700;">Pending</td></tr>' +
+      '<tr style="background:#F0F6FF;"><td style="padding:8px 12px;">Item 3</td><td style="padding:8px 12px;">₹2,50,000</td><td style="padding:8px 12px;">Q2 2026</td><td style="padding:8px 12px;color:#2563EB;font-weight:700;">Review</td></tr>' +
+      '</tbody></table>' +
+      '<p style="font-size:11px;color:#8AAAC8;margin-top:12px;">Mock data shown — actual file data loads in live system.</p></div>';
+  } else {
+    bodyContent = '<div style="text-align:center;padding:60px;color:#4A6A8A;"><div style="font-size:60px;margin-bottom:16px;">📁</div><p style="font-size:16px;">' + a.name + '</p><p style="font-size:13px;margin-top:8px;color:#8AAAC8;">Preview not available for this file type.</p></div>';
+  }
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + a.name + '</title>' +
+    '<style>body{font-family:Arial,sans-serif;margin:0;background:#F0F6FF;}' +
+    '.bar{background:#1A3A5C;color:#fff;padding:11px 20px;display:flex;justify-content:space-between;align-items:center;}' +
+    '.bar-title{font-size:13px;font-weight:700;}' +
+    '.cl-btn{background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;}' +
+    '</style></head><body>' +
+    '<div class="bar"><span class="bar-title">👁️ ' + a.name + ' — Preview</span>' +
+    '<button class="cl-btn" onclick="parent.document.getElementById(\'BNRI-att-overlay\').remove()">✕ Close</button></div>' +
+    bodyContent + '</body></html>';
+
+  var old = document.getElementById('BNRI-att-overlay');
+  if(old) old.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'BNRI-att-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;';
+  var frame = document.createElement('iframe');
+  frame.style.cssText = 'flex:1;border:none;width:100%;';
+  overlay.appendChild(frame);
+  document.body.appendChild(overlay);
+  frame.contentDocument.open();
+  frame.contentDocument.write(html);
+  frame.contentDocument.close();
+  closeAttachment();
+}
+
+function downloadAttachment() {
+  var a = _currentAtt;
+  var content = 'BNRI Infra Approval System\r\nFile: ' + a.name + '\r\nReference: ' + a.ref + '\r\nUploaded by: ' + a.uploader + '\r\nDate: ' + a.date + '\r\nVersion: ' + a.ver + '\r\n\r\n[Mock file — replace with real content in production]';
+  var b64 = btoa(unescape(encodeURIComponent(content)));
+  var link = document.createElement('a');
+  link.href = 'data:application/octet-stream;base64,' + b64;
+  link.download = a.name;
+  link.click();
+  showToast('📥 ' + a.name + ' downloaded!');
+  closeAttachment();
+}
+
+function closeAttachment() {
+  document.getElementById('attachment-modal').classList.remove('open');
+}
+
+// ── EXPORT EXCEL (pure JS, zero CDN) ────────────────────────
+function exportExcel() {
+  var reqs = (currentUser && currentUser.role === 'admin') ? MOCK_REQUESTS : getFilteredRequests();
+  if(!reqs.length){ showToast('No data to export!'); return; }
+
+  var today    = new Date().toISOString().slice(0,10);
+  var dept     = (currentUser && currentUser.dept) ? currentUser.dept : 'All';
+  var uname    = currentUser ? currentUser.name : 'Admin';
+  var filename = 'BNRI_Requests_' + dept + '_' + today + '.xls';
+
+  // Build HTML table — Excel opens HTML tables natively
+  var th = ['Ref No','Title','Type','Priority','Status','Submitted By','Department','Date','Description'];
+  var headerRow = th.map(function(h){
+    return '<th style="background:#1A3A5C;color:#fff;padding:7px 10px;font-size:12px;border:1px solid #aaa">'+h+'</th>';
+  }).join('');
+
+  var bodyRows = reqs.map(function(r, i){
+    var sc = r.status==='Approved'?'#16A34A':r.status==='Rejected'?'#DC2626':'#D97706';
+    var bg = i%2===0 ? '#FFFFFF' : '#F0F6FF';
+    var td = function(v,extra){ return '<td style="padding:6px 10px;border:1px solid #ddd;font-size:11px;background:'+bg+';'+(extra||'')+'">'+v+'</td>'; };
+    return '<tr>'+
+      td(r.ref)+td(r.title)+td(r.type)+td(r.priority)+
+      td(r.status,'color:'+sc+';font-weight:700')+
+      td(r.submitter)+td(r.dept||'')+td(r.date)+td(r.desc||'')+
+    '</tr>';
+  }).join('');
+
+  var xml =
+    '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="UTF-8"/>' +
+    '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>' +
+    '<x:Name>BNRI Requests</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>' +
+    '</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->' +
+    '</head><body>' +
+    '<table><tr><td colspan="9" style="font-size:16px;font-weight:800;color:#1A3A5C;padding:10px;border:none">BNRI Infra — Approval System Report</td></tr>' +
+    '<tr><td colspan="9" style="font-size:11px;color:#4A6A8A;padding:4px 10px 10px;border:none">Exported by: '+uname+' | Dept: '+dept+' | Date: '+today+'</td></tr>' +
+    '<tr>'+headerRow+'</tr>'+bodyRows+
+    '</table></body></html>';
+
+  var b64 = btoa(unescape(encodeURIComponent(xml)));
+  var a = document.createElement('a');
+  a.href = 'data:application/vnd.ms-excel;base64,' + b64;
+  a.download = filename;
+  a.click();
+  showToast('✅ Excel downloaded! (' + reqs.length + ' records)');
+}
+
+// ── EXPORT PDF (pure DOM overlay — no iframe, works everywhere) ─
+var _pdfReqs = [];
+
+function exportPDF() {
+  var reqs = (currentUser && currentUser.role === 'admin') ? MOCK_REQUESTS : getFilteredRequests();
+  if(!reqs.length){ showToast('No data to export!'); return; }
+  _pdfReqs = reqs;
+
+  var today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  var dept  = (currentUser && currentUser.dept) ? currentUser.dept : 'All Departments';
+  var uname = currentUser ? currentUser.name : 'Admin';
+
+  // Summary table rows
+  var summaryRows = reqs.map(function(r, i) {
+    var sc = r.status==='Approved'?'#16A34A':r.status==='Rejected'?'#DC2626':'#D97706';
+    var bg = i%2===0?'#fff':'#F0F6FF';
+    return '<tr style="background:'+bg+';cursor:pointer;" onclick="pdfToggleDetail('+r.id+')" title="Click to view full details">' +
+      '<td style="padding:8px 10px;border-bottom:1px solid #E2EAF3;color:#2563EB;font-family:monospace;font-size:11px;">'+r.ref+'</td>' +
+      '<td style="padding:8px 10px;border-bottom:1px solid #E2EAF3;font-size:12px;font-weight:600;">'+r.title+'</td>' +
+      '<td style="padding:8px 10px;border-bottom:1px solid #E2EAF3;font-size:11px;">'+r.type+'</td>' +
+      '<td style="padding:8px 10px;border-bottom:1px solid #E2EAF3;font-size:11px;">'+r.priority+'</td>' +
+      '<td style="padding:8px 10px;border-bottom:1px solid #E2EAF3;font-size:11px;font-weight:700;color:'+sc+';">'+r.status+'</td>' +
+      '<td style="padding:8px 10px;border-bottom:1px solid #E2EAF3;font-size:11px;">'+r.submitter+'</td>' +
+      '<td style="padding:8px 10px;border-bottom:1px solid #E2EAF3;font-size:11px;">'+(r.dept||'')+'</td>' +
+      '<td style="padding:8px 10px;border-bottom:1px solid #E2EAF3;font-size:11px;">'+r.date+'</td>' +
+      '<td style="padding:8px 10px;border-bottom:1px solid #E2EAF3;font-size:12px;text-align:center;">' +
+        '<span onclick="pdfOpenDoc('+r.id+')" title="Save as PDF" style="cursor:pointer;font-size:16px;">📄</span>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+
+  // Remove old overlay
+  var old = document.getElementById('BNRI-pdf-overlay');
+  if(old) old.remove();
+
+  // Build DOM overlay directly (no iframe!)
+  var overlay = document.createElement('div');
+  overlay.id = 'BNRI-pdf-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;background:#fff;font-family:Arial,sans-serif;overflow-y:auto;';
+
+  overlay.innerHTML =
+    // Top bar
+    '<div style="background:#1A3A5C;color:#fff;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;position:sticky;top:0;z-index:10;">' +
+      '<span style="font-weight:700;font-size:14px;">📄 BNRI Report — Export Preview</span>' +
+      '<div style="display:flex;gap:8px;">' +
+        '<button onclick="pdfPrint()" style="background:#22C55E;color:#fff;border:none;border-radius:6px;padding:7px 18px;cursor:pointer;font-size:12px;font-weight:700;">🖨️ Save as PDF</button>' +
+        '<button onclick="document.getElementById(\'BNRI-pdf-overlay\').remove()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:6px;padding:7px 16px;cursor:pointer;font-size:12px;font-weight:700;">✕ Close</button>' +
+      '</div>' +
+    '</div>' +
+    // Report header
+    '<div id="BNRI-pdf-body" style="padding:20px;flex:1;">' +
+      '<div style="background:#1A3A5C;color:#fff;padding:14px 20px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+        '<div><div style="font-size:20px;font-weight:800;letter-spacing:1px;">BNRI<span style="color:#60A5FA;">INFRA</span></div><div style="font-size:11px;opacity:.8;margin-top:2px;">Approval System — Request Report</div></div>' +
+        '<div style="font-size:11px;text-align:right;opacity:.85;line-height:1.8;"><b>'+uname+'</b><br>'+dept+'<br>'+today+'</div>' +
+      '</div>' +
+      '<div style="font-size:12px;color:#4A6A8A;margin-bottom:8px;font-weight:600;">'+reqs.length+' request(s)</div>' +
+      '<div style="font-size:11px;color:#2563EB;margin-bottom:14px;background:#EFF6FF;padding:8px 12px;border-radius:6px;border-left:3px solid #2563EB;">👆 Click any row to view full details — approvals, history & discussion</div>' +
+      '<table style="width:100%;border-collapse:collapse;font-size:11px;">' +
+        '<thead><tr style="background:#1A3A5C;color:#fff;">' +
+          '<th style="padding:8px 10px;text-align:left;font-size:10px;">Ref No</th>' +
+          '<th style="padding:8px 10px;text-align:left;font-size:10px;">Title</th>' +
+          '<th style="padding:8px 10px;text-align:left;font-size:10px;">Type</th>' +
+          '<th style="padding:8px 10px;text-align:left;font-size:10px;">Priority</th>' +
+          '<th style="padding:8px 10px;text-align:left;font-size:10px;">Status</th>' +
+          '<th style="padding:8px 10px;text-align:left;font-size:10px;">Submitted By</th>' +
+          '<th style="padding:8px 10px;text-align:left;font-size:10px;">Dept</th>' +
+          '<th style="padding:8px 10px;text-align:left;font-size:10px;">Date</th>' +
+          '<th style="padding:8px 10px;width:30px;"></th>' +
+        '</tr></thead>' +
+        '<tbody>'+summaryRows+'</tbody>' +
+      '</table>' +
+      '<div style="font-size:9px;color:#8AAAC8;text-align:center;border-top:1px solid #E2EAF3;padding:10px;margin-top:16px;">BNRI Infra Approval System &bull; '+today+' &bull; Confidential</div>' +
+    '</div>' +
+    // Detail modal (inside same overlay)
+    '<div id="BNRI-detail-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100000;align-items:center;justify-content:center;padding:20px;">' +
+      '<div id="BNRI-detail-content" style="background:#fff;border-radius:12px;overflow:hidden;max-width:760px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px #0004;"></div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+}
+
+function buildAuthDoc(r) {
+  var now      = new Date().toLocaleString('en-IN');
+  var statusColor = r.status==='Approved'?'#16A34A':r.status==='Rejected'?'#DC2626':'#D97706';
+  var statusBg    = r.status==='Approved'?'#DCFCE7':r.status==='Rejected'?'#FEE2E2':'#FEF3C7';
+
+  // Approval trail rows
+  var trailRows = '';
+  // Submitted row
+  trailRows += '<tr>' +
+    '<td style="padding:9px 12px;border:1px solid #C8D8F0;font-weight:600;">Submitted</td>' +
+    '<td style="padding:9px 12px;border:1px solid #C8D8F0;color:#2563EB;font-weight:700;">📝 SUBMITTED</td>' +
+    '<td style="padding:9px 12px;border:1px solid #C8D8F0;color:#4A6A8A;">—</td>' +
+    '<td style="padding:9px 12px;border:1px solid #C8D8F0;color:#4A6A8A;">'+r.date+'</td>' +
+  '</tr>';
+  r.approvals.forEach(function(a) {
+    var ac   = a.action==='Approved'?'#16A34A':a.action==='Rejected'?'#DC2626':'#7C3AED';
+    var icon = a.action==='Approved'?'✅ APPROVED':a.action==='Rejected'?'❌ REJECTED':'❓ CLARIFICATION';
+    trailRows += '<tr>' +
+      '<td style="padding:9px 12px;border:1px solid #C8D8F0;font-weight:600;">'+(a.stage==='L1'?'L1 Approver':'Final Approver / Director')+'</td>' +
+      '<td style="padding:9px 12px;border:1px solid #C8D8F0;font-weight:700;color:'+ac+';">'+icon+'</td>' +
+      '<td style="padding:9px 12px;border:1px solid #C8D8F0;color:#4A6A8A;">'+(a.comment||'—')+'</td>' +
+      '<td style="padding:9px 12px;border:1px solid #C8D8F0;color:#4A6A8A;">'+a.time+'</td>' +
+    '</tr>';
+  });
+  if(!r.approvals.length) {
+    trailRows += '<tr><td colspan="4" style="padding:10px 12px;border:1px solid #C8D8F0;color:#8AAAC8;font-style:italic;text-align:center;">No approvals yet — pending review</td></tr>';
+  }
+
+  // Discussion rows
+  var discussRows = r.comments.length ? r.comments.map(function(c){
+    return '<tr><td style="padding:8px 12px;border:1px solid #C8D8F0;font-weight:600;">'+c.user+'</td>'+
+      '<td style="padding:8px 12px;border:1px solid #C8D8F0;color:#4A6A8A;">'+c.text+'</td>'+
+      '<td style="padding:8px 12px;border:1px solid #C8D8F0;color:#8AAAC8;">'+c.time+'</td></tr>';
+  }).join('') : '<tr><td colspan="3" style="padding:10px 12px;border:1px solid #C8D8F0;color:#8AAAC8;font-style:italic;text-align:center;">No discussion comments</td></tr>';
+
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>BNRI — '+r.ref+'</title>' +
+  '<style>' +
+  '*{margin:0;padding:0;box-sizing:border-box;}' +
+  'body{font-family:Arial,sans-serif;background:#fff;color:#1A2E4A;font-size:13px;padding:32px 40px;}' +
+  'h2{font-size:15px;font-weight:800;letter-spacing:.5px;}' +
+  '.section-title{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#fff;background:#1A3A5C;padding:7px 14px;margin-bottom:0;}' +
+  'table.info{width:100%;border-collapse:collapse;margin-bottom:0;}' +
+  'table.info td{padding:8px 14px;border:1px solid #C8D8F0;font-size:12px;}' +
+  'table.info td:first-child{font-weight:700;width:38%;background:#F0F6FF;color:#1A3A5C;}' +
+  'table.trail{width:100%;border-collapse:collapse;}' +
+  'table.trail th{padding:9px 12px;background:#1A3A5C;color:#fff;font-size:11px;font-weight:700;text-align:left;border:1px solid #1A3A5C;}' +
+  '@page{size:A4;margin:12mm}' +
+  '@media print{body{padding:0;}.no-print{display:none!important;}}' +
+  '</style></head><body>' +
+
+  // ── HEADER ──
+  '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1A3A5C;padding-bottom:16px;margin-bottom:20px;">' +
+    '<div>' +
+      '<div style="font-size:10px;letter-spacing:2px;color:#8AAAC8;text-transform:uppercase;margin-bottom:4px;">BNRI Infrastructure Projects</div>' +
+      '<div style="font-size:22px;font-weight:900;color:#1A3A5C;letter-spacing:-0.5px;">PRIVATE LIMITED</div>' +
+      '<div style="font-size:14px;font-weight:700;color:#2563EB;margin-top:6px;letter-spacing:.5px;">'+r.type.toUpperCase()+' REQUEST</div>' +
+      '<div style="font-size:12px;color:#4A6A8A;margin-top:2px;">Authorisation Document</div>' +
+    '</div>' +
+    '<div style="text-align:right;">' +
+      '<div style="font-size:10px;color:#8AAAC8;text-transform:uppercase;letter-spacing:1px;">Reference No.</div>' +
+      '<div style="font-size:16px;font-weight:800;color:#1A3A5C;font-family:monospace;">'+r.ref+'</div>' +
+      '<div style="font-size:10px;color:#8AAAC8;margin-top:6px;">Submitted On</div>' +
+      '<div style="font-size:12px;font-weight:600;color:#1A3A5C;">'+r.date+'</div>' +
+      '<div style="margin-top:8px;display:inline-block;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:800;background:'+statusBg+';color:'+statusColor+';">'+r.status.toUpperCase()+'</div>' +
+    '</div>' +
+  '</div>' +
+
+  // ── SECTION 1 — REQUEST INFO ──
+  '<div style="margin-bottom:18px;">' +
+    '<div class="section-title">SECTION 1 — REQUEST INFORMATION</div>' +
+    '<table class="info">' +
+      '<tr><td>Request Title</td><td>'+r.title+'</td></tr>' +
+      '<tr><td>Request Type</td><td>'+r.type+'</td></tr>' +
+      '<tr><td>Priority</td><td>'+r.priority+'</td></tr>' +
+      '<tr><td>Department</td><td>'+(r.dept||'—')+'</td></tr>' +
+      '<tr><td>Description</td><td style="line-height:1.7;color:#1A2E4A;">'+(r.desc||'—')+'</td></tr>' +
+    '</table>' +
+  '</div>' +
+
+  // ── SECTION 2 — SUBMITTER INFO ──
+  '<div style="margin-bottom:18px;">' +
+    '<div class="section-title">SECTION 2 — SUBMITTED BY</div>' +
+    '<table class="info">' +
+      '<tr><td>Full Name</td><td>'+r.submitter+'</td></tr>' +
+      '<tr><td>Department</td><td>'+(r.dept||'—')+'</td></tr>' +
+      '<tr><td>Date of Submission</td><td>'+r.date+'</td></tr>' +
+    '</table>' +
+  '</div>' +
+
+  // ── SECTION 3 — APPROVAL TRAIL ──
+  '<div style="margin-bottom:18px;">' +
+    '<div class="section-title">SECTION 3 — APPROVAL TRAIL</div>' +
+    '<table class="trail">' +
+      '<thead><tr><th>Stage</th><th>Decision</th><th>Remarks</th><th>Date &amp; Time</th></tr></thead>' +
+      '<tbody>'+trailRows+'</tbody>' +
+    '</table>' +
+  '</div>' +
+
+  // ── SECTION 4 — DISCUSSION ──
+  (r.comments.length ? '<div style="margin-bottom:18px;">' +
+    '<div class="section-title">SECTION 4 — DISCUSSION</div>' +
+    '<table class="trail">' +
+      '<thead><tr><th>By</th><th>Comment</th><th>Time</th></tr></thead>' +
+      '<tbody>'+discussRows+'</tbody>' +
+    '</table>' +
+  '</div>' : '') +
+
+  // ── FOOTER ──
+  '<div style="border-top:2px solid #1A3A5C;margin-top:24px;padding-top:12px;display:flex;justify-content:space-between;align-items:flex-end;">' +
+    '<div>' +
+      '<div style="font-size:10px;color:#4A6A8A;">BNRI Infrastructure Projects Pvt. Ltd.</div>' +
+      '<div style="font-size:10px;color:#4A6A8A;">Generated by BNRI Approval System</div>' +
+      '<div style="font-size:10px;color:#4A6A8A;">Document Ref: '+r.ref+'</div>' +
+      '<div style="font-size:10px;color:#4A6A8A;">Generated on: '+now+'</div>' +
+      '<div style="font-size:10px;color:#8AAAC8;margin-top:4px;font-style:italic;">This is a system-generated document. Alterations are strictly not permitted.</div>' +
+    '</div>' +
+    '<div style="font-size:9px;color:#8AAAC8;text-align:right;letter-spacing:1px;">© B N R I N F R A S T R U C T U R E P R O J E C T S P V T. L T D. — C O N F I D E N T I A L</div>' +
+  '</div>' +
+
+  // Print button (hidden on print)
+  '<div class="no-print" style="text-align:center;margin-top:28px;">' +
+    '<button onclick="window.print()" style="background:#1A3A5C;color:#fff;border:none;border-radius:8px;padding:12px 32px;font-size:14px;font-weight:700;cursor:pointer;margin-right:10px;">🖨️ Save as PDF</button>' +
+    '<button onclick="window.close()" style="background:#F0F6FF;color:#1A3A5C;border:1px solid #C2D9F0;border-radius:8px;padding:12px 20px;font-size:14px;cursor:pointer;">✕ Close</button>' +
+  '</div>' +
+  '</body></html>';
+}
+
+function downloadAndPrint(r) {
+  // Build auth doc HTML with auto-print on load
+  var html = buildAuthDoc(r);
+  // Inject auto-print script into the HTML
+  html = html.replace('</body></html>',
+    '<script>window.onload=function(){window.print();};<\/script></body></html>'
+  );
+  // Download as .html file — user opens it → auto print dialog fires
+  var blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = r.ref + '_AuthDoc.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+  showToast('📥 Downloaded! Open the file → Print dialog auto-opens → Save as PDF');
+}
+
+function pdfOpenDoc(id) {
+  var r = _pdfReqs.find(function(x){ return x.id === id; });
+  if(!r) return;
+  downloadAndPrint(r);
+}
+
+function pdfPrint() {
+  var modal    = document.getElementById('BNRI-detail-modal');
+  var detailEl = document.getElementById('BNRI-detail-content');
+  var r = null;
+  if(modal && modal.style.display === 'flex' && detailEl) {
+    var headerEl = detailEl.querySelector('[data-id]');
+    var rid = headerEl ? parseInt(headerEl.getAttribute('data-id')) : 0;
+    r = _pdfReqs.find(function(x){ return x.id === rid; });
+  }
+  if(!r && _pdfReqs.length) r = _pdfReqs[0];
+  if(!r) { showToast('No request selected!'); return; }
+  downloadAndPrint(r);
+}
+
+function pdfToggleDetail(id) {
+  var r = _pdfReqs.find(function(x){ return x.id === id; });
+  if(!r) return;
+  var sc = r.status==='Approved'?'#16A34A':r.status==='Rejected'?'#DC2626':'#D97706';
+
+  var approvalRows = '<tr style="background:#EFF6FF"><td style="padding:6px 10px;border-bottom:1px solid #E2EAF3;font-weight:700;color:#2563EB">📝 Submitted</td><td style="padding:6px 10px;border-bottom:1px solid #E2EAF3">'+r.submitter+'</td><td style="padding:6px 10px;border-bottom:1px solid #E2EAF3">—</td><td style="padding:6px 10px;border-bottom:1px solid #E2EAF3">'+r.date+'</td><td style="padding:6px 10px;border-bottom:1px solid #E2EAF3;color:#4A6A8A">Request submitted</td></tr>';
+  r.approvals.forEach(function(a){
+    var ac = a.action==='Approved'?'#16A34A':a.action==='Rejected'?'#DC2626':'#7C3AED';
+    var icon = a.action==='Approved'?'✓ Approved':a.action==='Rejected'?'✗ Rejected':'? Clarification';
+    approvalRows += '<tr><td style="padding:6px 10px;border-bottom:1px solid #E2EAF3;font-weight:700;color:'+ac+'">'+icon+'</td><td style="padding:6px 10px;border-bottom:1px solid #E2EAF3">'+a.by+'</td><td style="padding:6px 10px;border-bottom:1px solid #E2EAF3;color:#4A6A8A">'+a.stage+'</td><td style="padding:6px 10px;border-bottom:1px solid #E2EAF3">'+a.time+'</td><td style="padding:6px 10px;border-bottom:1px solid #E2EAF3;font-style:italic;color:#4A6A8A">'+(a.comment||'—')+'</td></tr>';
+  });
+
+  var commentHTML = r.comments.length ? r.comments.map(function(c){
+    return '<div style="padding:8px 12px;background:#FAFBFF;border-radius:6px;margin-bottom:6px;border-left:3px solid #C2D9F0"><div style="font-size:11px;font-weight:700;color:#1A2E4A">'+c.user+' <span style="font-weight:400;color:#8AAAC8;font-size:10px">'+c.time+'</span></div><div style="font-size:12px;color:#4A6A8A;margin-top:3px">'+c.text+'</div></div>';
+  }).join('') : '<p style="font-size:11px;color:#8AAAC8;font-style:italic;margin:0">No comments</p>';
+
+  var content =
+    '<div style="background:#1A3A5C;color:#fff;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;" data-ref="'+r.ref+'" data-id="'+r.id+'">' +
+      '<div><span style="font-family:monospace;font-size:11px;background:rgba(255,255,255,.15);padding:2px 8px;border-radius:4px;">'+r.ref+'</span><span style="font-size:14px;font-weight:700;margin-left:10px;">'+r.title+'</span></div>' +
+      '<span style="font-size:11px;font-weight:700;color:'+sc+';background:#fff;padding:3px 10px;border-radius:10px;">'+r.status+'</span>' +
+    '</div>' +
+    (function(){
+      var pc = r.priority==='Critical'?'#DC2626':r.priority==='High'?'#D97706':r.priority==='Medium'?'#2563EB':'#16A34A';
+      var pbg= r.priority==='Critical'?'#FEE2E2':r.priority==='High'?'#FEF3C7':r.priority==='Medium'?'#DBEAFE':'#DCFCE7';
+      var tc = {Finance:'#2563EB',IT:'#7C3AED',Legal:'#D97706',HR:'#E11D48',Procurement:'#0D9488'}[r.type]||'#4A6A8A';
+      var tbg= {Finance:'#DBEAFE',IT:'#EDE9FE',Legal:'#FEF3C7',HR:'#FFE4E6',Procurement:'#CCFBF1'}[r.type]||'#F0F6FF';
+      return '<div style="padding:14px 18px;background:#F8FBFF;border-bottom:1px solid #E2EAF3;">'+
+        '<div style="font-size:10px;font-weight:700;color:#8AAAC8;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">📋 Request Info</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">'+
+          '<div style="background:#fff;border:1px solid #E2EAF3;border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:10px;color:#8AAAC8;font-weight:600;margin-bottom:4px;">👤 Submitted By</div>'+
+            '<div style="font-size:13px;font-weight:700;color:#1A2E4A;">'+r.submitter+'</div>'+
+          '</div>'+
+          '<div style="background:#fff;border:1px solid #E2EAF3;border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:10px;color:#8AAAC8;font-weight:600;margin-bottom:4px;">🏢 Department</div>'+
+            '<div style="font-size:13px;font-weight:700;color:#1A2E4A;">'+(r.dept||'—')+'</div>'+
+          '</div>'+
+          '<div style="background:#fff;border:1px solid #E2EAF3;border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:10px;color:#8AAAC8;font-weight:600;margin-bottom:4px;">📅 Submitted On</div>'+
+            '<div style="font-size:13px;font-weight:700;color:#1A2E4A;">'+r.date+'</div>'+
+          '</div>'+
+          '<div style="background:#fff;border:1px solid #E2EAF3;border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:10px;color:#8AAAC8;font-weight:600;margin-bottom:4px;">⚡ Priority</div>'+
+            '<div style="font-size:12px;font-weight:700;color:'+pc+';background:'+pbg+';display:inline-block;padding:2px 10px;border-radius:20px;">'+r.priority+'</div>'+
+          '</div>'+
+          '<div style="background:#fff;border:1px solid #E2EAF3;border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:10px;color:#8AAAC8;font-weight:600;margin-bottom:4px;">📁 Type</div>'+
+            '<div style="font-size:12px;font-weight:700;color:'+tc+';background:'+tbg+';display:inline-block;padding:2px 10px;border-radius:20px;">'+r.type+'</div>'+
+          '</div>'+
+          '<div style="background:#fff;border:1px solid #E2EAF3;border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:10px;color:#8AAAC8;font-weight:600;margin-bottom:4px;">🔖 Ref No</div>'+
+            '<div style="font-size:12px;font-weight:700;color:#2563EB;font-family:monospace;">'+r.ref+'</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    })()+
+    '<div style="padding:14px 18px;border-bottom:1px solid #E2EAF3;"><div style="font-size:10px;font-weight:700;color:#8AAAC8;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Description</div><p style="font-size:12px;color:#1A2E4A;margin:0;line-height:1.7;background:#F0F6FF;padding:10px 12px;border-radius:6px;border-left:3px solid #2563EB;">'+(r.desc||'—')+'</p></div>' +
+    '<div style="padding:14px 18px;border-bottom:1px solid #E2EAF3;"><div style="font-size:10px;font-weight:700;color:#8AAAC8;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Approval History</div>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:#E8F0FB;"><th style="padding:6px 10px;text-align:left;color:#1A3A5C;">Action</th><th style="padding:6px 10px;text-align:left;color:#1A3A5C;">By</th><th style="padding:6px 10px;text-align:left;color:#1A3A5C;">Stage</th><th style="padding:6px 10px;text-align:left;color:#1A3A5C;">Date/Time</th><th style="padding:6px 10px;text-align:left;color:#1A3A5C;">Comment</th></tr></thead><tbody>'+approvalRows+'</tbody></table></div>' +
+    '<div style="padding:14px 18px;border-bottom:1px solid #E2EAF3;"><div style="font-size:10px;font-weight:700;color:#8AAAC8;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Discussion</div>'+commentHTML+'</div>' +
+    '<div style="padding:14px 18px;background:#F8FBFF;display:flex;gap:10px;justify-content:center;">' +
+      '<button onclick="pdfPrint()" style="background:#1A3A5C;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer;">🖨️ Save as PDF</button>' +
+      '<button onclick="document.getElementById(\'BNRI-detail-modal\').style.display=\'none\'" style="background:#f0f4f8;color:#333;border:1px solid #ddd;border-radius:8px;padding:10px 18px;font-size:13px;cursor:pointer;">✕ Close</button>' +
+    '</div>';
+
+  document.getElementById('BNRI-detail-content').innerHTML = content;
+  var modal = document.getElementById('BNRI-detail-modal');
+  modal.style.display = 'flex';
+}
+
+// ── DASHBOARD RENDERER ──────────────────────────────────────
+function renderDashboard() {
+  var role   = currentUser.role;
+  var name   = currentUser.name;
+  var statEl = document.getElementById('dash-stat-grid');
+  var chartEl= document.getElementById('dash-chart-row');
+  if(!statEl) return;
+
+  var typeMap = {Finance:'approver_finance',IT:'approver_it',Legal:'approver_legal',HR:'approver_hr',Procurement:'approver_it'};
+  var l1Statuses = ['Pending Review','Under Review','Needs Clarification'];
+
+  // Filter requests based on role
+  var myReqs, pendingReqs, approvedReqs, rejectedReqs;
+
+  if(role === 'requester') {
+    myReqs      = MOCK_REQUESTS.filter(function(r){ return r.submitter === name; });
+    pendingReqs = myReqs.filter(function(r){ return !['Approved','Rejected'].includes(r.status); });
+    approvedReqs= myReqs.filter(function(r){ return r.status === 'Approved'; });
+    rejectedReqs= myReqs.filter(function(r){ return r.status === 'Rejected'; });
+    statEl.innerHTML =
+      statCard('var(--blue)',   myReqs.length,       'My Requests') +
+      statCard('var(--amber)',  pendingReqs.length,  'Pending') +
+      statCard('var(--green)',  approvedReqs.length, 'Approved') +
+      statCard('var(--red)',    rejectedReqs.length, 'Rejected');
+    // Chart: my requests by type
+    chartEl.innerHTML = barChart('My Requests by Type', myReqs) + statusChart('Status Breakdown', myReqs);
+
+  } else if(role === 'final_approver') {
+    var allPending  = MOCK_REQUESTS.filter(function(r){ return ['Pending Final','Approved L1'].includes(r.status); });
+    var allApproved = MOCK_REQUESTS.filter(function(r){ return r.status === 'Approved'; });
+    var allRejected = MOCK_REQUESTS.filter(function(r){ return r.status === 'Rejected'; });
+    statEl.innerHTML =
+      statCard('var(--blue)',   MOCK_REQUESTS.length, 'Total') +
+      statCard('var(--amber)',  allPending.length,    'Awaiting Final') +
+      statCard('var(--green)',  allApproved.length,   'Approved') +
+      statCard('var(--red)',    allRejected.length,   'Rejected');
+    chartEl.innerHTML = barChart('All Requests by Type', MOCK_REQUESTS) + statusChart('Status Breakdown', MOCK_REQUESTS);
+
+  } else {
+    // L1 Approvers
+    var deptType = Object.keys(typeMap).find(function(t){ return typeMap[t]===role; }) || '';
+    var deptReqs = MOCK_REQUESTS.filter(function(r){ return r.type === deptType; });
+    var myTasks  = deptReqs.filter(function(r){ return l1Statuses.includes(r.status); });
+    var done     = deptReqs.filter(function(r){ return r.status === 'Approved'; });
+    var rejected = deptReqs.filter(function(r){ return r.status === 'Rejected'; });
+    statEl.innerHTML =
+      statCard('var(--blue)',   deptReqs.length, deptType + ' Requests') +
+      statCard('var(--amber)',  myTasks.length,  'Pending My Action') +
+      statCard('var(--green)',  done.length,     'Approved') +
+      statCard('var(--red)',    rejected.length, 'Rejected');
+    chartEl.innerHTML = statusChart(deptType + ' Status', deptReqs) + recentActivity(deptReqs);
+  }
+}
+
+function statCard(color, val, lbl) {
+  return '<div class="stat-card" style="border-left-color:'+color+'"><div class="val" style="color:'+color+'">'+val+'</div><div class="lbl">'+lbl+'</div></div>';
+}
+
+function barChart(title, reqs) {
+  var types = {Finance:'var(--blue)',IT:'var(--purple)',Procurement:'var(--teal)',Legal:'var(--amber)',HR:'var(--red)'};
+  var counts = {};
+  reqs.forEach(function(r){ counts[r.type]=(counts[r.type]||0)+1; });
+  var max = Math.max.apply(null, Object.values(counts).concat([1]));
+  var bars = Object.keys(types).map(function(t){
+    var c = counts[t]||0;
+    return '<div class="bar-item"><span class="bar-label">'+t+'</span><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(c/max*100)+'%;background:'+types[t]+'"></div></div><span class="bar-count">'+c+'</span></div>';
+  }).join('');
+  return '<div class="chart-card"><div class="chart-title">'+title+'</div><div class="bar-group">'+bars+'</div></div>';
+}
+
+function statusChart(title, reqs) {
+  var statuses = [
+    {key:'Pending Review',color:'var(--amber)'},
+    {key:'Under Review',color:'var(--blue)'},
+    {key:'Needs Clarification',color:'var(--purple)'},
+    {key:'Pending Final',color:'var(--teal)'},
+    {key:'Approved',color:'var(--green)'},
+    {key:'Rejected',color:'var(--red)'}
+  ];
+  var items = statuses.map(function(s){
+    var c = reqs.filter(function(r){return r.status===s.key;}).length;
+    if(!c) return '';
+    return '<div class="status-item"><span class="status-name"><span class="status-dot" style="background:'+s.color+'"></span>'+s.key+'</span><span class="status-count" style="color:'+s.color+'">'+c+'</span></div>';
+  }).join('');
+  return '<div class="chart-card"><div class="chart-title">'+title+'</div><div class="status-list">'+items+'</div></div>';
+}
+
+function recentActivity(reqs) {
+  var recent = reqs.slice(0,5);
+  var rows = recent.map(function(r){
+    var sc = {'Pending Review':'var(--amber)','Under Review':'var(--blue)','Approved':'var(--green)','Rejected':'var(--red)','Needs Clarification':'var(--purple)','Pending Final':'var(--teal)'};
+    var c = sc[r.status]||'var(--text2)';
+    return '<div class="status-item"><span class="status-name" style="font-size:12px;">'+r.title+'</span><span class="status-badge" style="background:'+c+'22;color:'+c+';font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;">'+r.status+'</span></div>';
+  }).join('');
+  return '<div class="chart-card"><div class="chart-title">Recent Requests</div><div class="status-list">'+(rows||'<p style="color:var(--text3);font-size:13px;">No requests yet</p>')+'</div></div>';
+}
+
+// Global helper — dynamic approver name lookup
+function getFinalApproverName() {
+  var u = MOCK_USERS.find(function(x){return x.role==='final_approver';});
+  return u ? u.name : 'Final Approver';
+}
+function getL1ApproverName(type) {
+  var map = {Finance:'approver_finance',IT:'approver_it',Legal:'approver_legal',HR:'approver_hr',Procurement:'approver_it'};
+  var u = MOCK_USERS.find(function(x){return x.role===(map[type]||'approver_finance');});
+  return u ? u.name : 'Approver';
+}
+
+// Cloudflare-safe global function exposure
+window._BNRILogin = function() {
+  // Determine which form to read from
+  var userEl, passEl, errEl;
+  if(_loginType === 'requester') {
+    userEl = document.getElementById('req-login-user');
+    passEl = document.getElementById('req-login-pass');
+    errEl  = document.getElementById('req-login-error');
+  } else {
+    userEl = document.getElementById('login-user');
+    passEl = document.getElementById('login-pass');
+    errEl  = document.getElementById('login-error');
+  }
+  var uname = (userEl ? userEl.value : '').trim().toLowerCase();
+  var pwd   = (passEl ? passEl.value : '').trim();
+  var found = MOCK_USERS.find(function(u){ return u.username.toLowerCase()===uname && u.active; });
+  if(!found){ errEl.textContent = 'Mobile number "'+uname+'" not found. Please check and try again.'; errEl.style.display='block'; return; }
+  if(found.password !== pwd){ errEl.textContent = 'Wrong password. Got: "'+pwd+'" (len:'+pwd.length+')'; errEl.style.display='block'; return; }
+  errEl.style.display = 'none';
+  currentUser = {name:found.name, role:found.role, username:found.username, dept:found.dept||''};
+  if(found.mustChangePwd){
+    document.getElementById('fpc-name').textContent = found.name;
+    document.getElementById('fpc-modal').classList.add('open');
+    return;
+  }
+  launchApp();
+};
+
+window._BNRIFpcSubmit = function(){ submitForcedPwd(); };
+
+</script>
+</body>
+</html>
