@@ -46,21 +46,6 @@ export function Login() {
           </h1>
         </div>
 
-        {/* Supabase Configuration Warning */}
-        {!isSupabaseConfigured && (
-          <div className="mb-6 bg-[#FEF3C7] border-l-4 border-[#F59E0B] p-4 rounded-lg">
-            <div className="flex items-start gap-2">
-              <span className="text-lg">⚠️</span>
-              <div className="text-xs">
-                <div className="font-bold text-[#92400E] mb-1">Configuration Required</div>
-                <div className="text-[#78350F]">
-                  Supabase environment variables are not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env.local file or GitHub secrets.
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* WhatsApp button */}
         <div className="flex justify-center mb-6">
           <button
