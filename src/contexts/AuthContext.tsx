@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 
 type DBUser = Database['public']['Tables']['users']['Row'];
@@ -25,6 +25,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Fetch user profile from database
   const fetchUserProfile = async (userId: string) => {
+    if (!isSupabaseConfigured) {
+      setUser(null);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('users')
@@ -35,16 +40,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       setUser(data);
     } catch (error: any) {
-      // Only log if it's not a fetch/connection error
-      if (!error?.message?.includes('fetch')) {
-        console.error('Error fetching user profile:', error);
-      }
+      // Silently handle errors when not configured
       setUser(null);
     }
   };
 
   // Initialize auth state
   useEffect(() => {
+    // Skip auth initialization if Supabase is not configured
+    if (!isSupabaseConfigured) {
+      setSession(null);
+      setSupabaseUser(null);
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     // Get initial session
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
@@ -58,10 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch((error) => {
-        // Only log if it's not a fetch/connection error
-        if (!error?.message?.includes('fetch')) {
-          console.error('Error getting session:', error);
-        }
+        // Silently handle errors - likely just configuration issues
         setSession(null);
         setSupabaseUser(null);
         setUser(null);
@@ -94,6 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, supabaseUser]);
 
   const signIn = async (email: string, password: string) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Unable to connect to authentication server. Please ensure Supabase is properly configured.');
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -108,16 +120,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: any) {
       // Provide helpful error message if Supabase isn't configured
       if (error.message?.includes('Failed to fetch') || error.message?.includes('fetch')) {
-        // Don't log fetch errors - it's just not configured yet
         throw new Error('Unable to connect to authentication server. Please ensure Supabase is properly configured.');
       }
-      // Only log non-fetch errors
-      console.error('Sign in error:', error);
       throw new Error(error.message || 'Failed to sign in');
     }
   };
 
   const signOut = async () => {
+    if (!isSupabaseConfigured) {
+      setUser(null);
+      setSupabaseUser(null);
+      setSession(null);
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -126,12 +142,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSupabaseUser(null);
       setSession(null);
     } catch (error: any) {
-      console.error('Sign out error:', error);
       throw new Error(error.message || 'Failed to sign out');
     }
   };
 
   const signUp = async (email: string, password: string, userData: Partial<DBUser>) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Unable to connect to authentication server. Please ensure Supabase is properly configured.');
+    }
+
     try {
       // First create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -162,7 +181,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Fetch the newly created profile
       await fetchUserProfile(authData.user.id);
     } catch (error: any) {
-      console.error('Sign up error:', error);
       throw new Error(error.message || 'Failed to sign up');
     }
   };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { Login } from './components/LoginSupabase';
 import { Dashboard } from './components/DashboardSupabase';
@@ -9,6 +9,10 @@ import { AdminShell } from './components/AdminShellSupabase';
 import { Sidebar } from './components/SidebarSupabase';
 import { useRequests } from '../hooks/useRequests';
 import { useUsers } from '../hooks/useUsers';
+import { suppressUnconfiguredErrors } from '../lib/suppressErrors';
+
+// Initialize error suppression immediately
+suppressUnconfiguredErrors();
 
 type Page = 'login' | 'dashboard' | 'requests' | 'detail' | 'new-request' | 'admin';
 

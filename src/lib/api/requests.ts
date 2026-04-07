@@ -34,6 +34,10 @@ export async function fetchRequests(): Promise<Request[]> {
 
 // Fetch single request by ID
 export async function fetchRequestById(id: string): Promise<Request | null> {
+  if (!isSupabaseConfigured) {
+    return null;
+  }
+
   try {
     const { data, error } = await supabase
       .from('requests')
@@ -51,6 +55,10 @@ export async function fetchRequestById(id: string): Promise<Request | null> {
 
 // Create new request
 export async function createRequest(request: RequestInsert): Promise<Request> {
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase is not configured');
+  }
+
   try {
     const { data, error } = await supabase
       .from('requests')
@@ -80,6 +88,10 @@ export async function createRequest(request: RequestInsert): Promise<Request> {
 
 // Update request
 export async function updateRequest(id: string, updates: RequestUpdate, userId: string, userName: string): Promise<Request> {
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase is not configured');
+  }
+
   try {
     // Fetch current request for audit log
     const current = await fetchRequestById(id);
@@ -114,6 +126,10 @@ export async function updateRequest(id: string, updates: RequestUpdate, userId: 
 
 // Delete request
 export async function deleteRequest(id: string): Promise<void> {
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase is not configured');
+  }
+
   try {
     const { error } = await supabase
       .from('requests')
@@ -129,6 +145,10 @@ export async function deleteRequest(id: string): Promise<void> {
 
 // Fetch approval history for a request
 export async function fetchApprovalHistory(requestId: string): Promise<ApprovalHistory[]> {
+  if (!isSupabaseConfigured) {
+    return [];
+  }
+
   try {
     const { data, error } = await supabase
       .from('approval_history')
@@ -146,6 +166,10 @@ export async function fetchApprovalHistory(requestId: string): Promise<ApprovalH
 
 // Create approval history entry
 export async function createApprovalHistory(approval: ApprovalHistoryInsert): Promise<void> {
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase is not configured');
+  }
+
   try {
     const { error } = await supabase
       .from('approval_history')
@@ -169,6 +193,10 @@ export async function createApprovalHistory(approval: ApprovalHistoryInsert): Pr
 
 // Fetch comments for a request
 export async function fetchRequestComments(requestId: string): Promise<RequestComment[]> {
+  if (!isSupabaseConfigured) {
+    return [];
+  }
+
   try {
     const { data, error } = await supabase
       .from('request_comments')
@@ -186,6 +214,10 @@ export async function fetchRequestComments(requestId: string): Promise<RequestCo
 
 // Create comment
 export async function createComment(comment: RequestCommentInsert): Promise<void> {
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase is not configured');
+  }
+
   try {
     const { error } = await supabase
       .from('request_comments')
@@ -209,19 +241,30 @@ export async function createComment(comment: RequestCommentInsert): Promise<void
 
 // Create audit log (internal helper)
 async function createAuditLog(log: Database['public']['Tables']['audit_logs']['Insert']): Promise<void> {
+  if (!isSupabaseConfigured) {
+    return; // Silently skip audit logging when not configured
+  }
+
   try {
     const { error } = await supabase
       .from('audit_logs')
       .insert(log);
 
-    if (error) console.error('Audit log error:', error);
+    // Silently fail for audit logs - they're not critical
+    if (error && isSupabaseConfigured) {
+      console.error('Audit log error:', error);
+    }
   } catch (error) {
-    console.error('Audit log error:', error);
+    // Silently fail for audit logs
   }
 }
 
 // Subscribe to request changes (real-time)
 export function subscribeToRequests(callback: (payload: any) => void) {
+  if (!isSupabaseConfigured) {
+    return () => {}; // Return no-op unsubscribe function
+  }
+
   const subscription = supabase
     .channel('requests_changes')
     .on(
@@ -242,6 +285,10 @@ export function subscribeToRequests(callback: (payload: any) => void) {
 
 // Subscribe to comments for a specific request (real-time)
 export function subscribeToRequestComments(requestId: string, callback: (payload: any) => void) {
+  if (!isSupabaseConfigured) {
+    return () => {}; // Return no-op unsubscribe function
+  }
+
   const subscription = supabase
     .channel(`request_comments_${requestId}`)
     .on(

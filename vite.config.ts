@@ -19,4 +19,25 @@ export default defineConfig({
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
+
+  // GitHub Pages deployment configuration
+  // Set base to '/' for custom domain or '/repository-name/' for github.io URLs
+  base: process.env.GITHUB_PAGES === 'true'
+    ? '/bnri-infrastructure-system/'
+    : '/',
+
+  // Build configuration for production deployment
+  build: {
+    outDir: 'dist',
+    sourcemap: false, // Disable sourcemaps in production for smaller bundle
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor chunks for better caching
+          'react-vendor': ['react', 'react-dom'],
+          'supabase-vendor': ['@supabase/supabase-js'],
+        },
+      },
+    },
+  },
 })

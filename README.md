@@ -2,6 +2,9 @@
 
 A comprehensive multi-level approval workflow system for infrastructure requests with real-time updates, Supabase backend, WhatsApp integration, and Excel export capabilities.
 
+> **🎉 Latest Update**: Supabase integration has been audited and fixed for production deployment!
+> See **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** for fast deployment or **[FIXES_SUMMARY.md](./FIXES_SUMMARY.md)** for technical details.
+
 ## ✨ Features
 
 ### Core Functionality
@@ -107,7 +110,16 @@ The app will open at `http://localhost:5173`
 
 ## 📖 Documentation
 
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Comprehensive deployment guide for GitHub Pages
+### Quick Start
+- **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - ⚡ Fast deployment guide (3 steps!)
+- **[.env.example](./.env.example)** - Environment variables reference
+
+### Deployment & Configuration
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Complete deployment guide with troubleshooting
+- **[FIXES_SUMMARY.md](./FIXES_SUMMARY.md)** - Technical details of Supabase integration fixes
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Original deployment documentation
+
+### Database
 - **[supabase-schema.sql](./supabase-schema.sql)** - Complete database schema with RLS policies
 
 ## 📋 Workflow
